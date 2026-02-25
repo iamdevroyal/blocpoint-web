@@ -1,0 +1,17 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-primary: #4f46e5;
+  --color-primary-soft: #6366f1;
+  --color-accent: #22d3ee;
+  --color-dark: #020617;
+  --color-surface: #020617;
+  --color-muted: #64748b;
+}
+
+/* Ensure class-based dark mode works in Tailwind 4 */
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+}

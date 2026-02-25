@@ -1,0 +1,116 @@
+<script setup>
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { useUIStore } from '../stores/ui'
+
+const router = useRouter()
+const uiStore = useUIStore()
+
+const phone = ref('')
+const pin = ref('')
+const rememberMe = ref(false)
+const isLoading = ref(false)
+
+const handleLogin = async () => {
+  isLoading.value = true
+  // Simulate login delay
+  setTimeout(() => {
+    isLoading.value = false
+    router.push('/app/dashboard')
+  }, 1000)
+}
+</script>
+
+<template>
+  <div class="min-h-[100dvh] flex flex-col transition-colors duration-500 bg-slate-50 dark:bg-dark text-slate-900 dark:text-white relative overflow-hidden">
+    
+    <!-- Background Decorators -->
+    <div class="absolute top-0 inset-x-0 h-[400px] bg-gradient-to-b from-primary/5 to-transparent dark:from-primary/10 z-0 pointer-events-none"></div>
+    <div class="absolute -top-40 -right-40 w-96 h-96 bg-primary/10 dark:bg-primary/20 rounded-full blur-3xl z-0 pointer-events-none"></div>
+
+    <!-- Top Area: Logo & Theme Toggle -->
+    <header class="w-full max-w-lg mx-auto flex items-center justify-between p-6 relative z-20">
+      <div class="flex items-center gap-2">
+        <img v-if="uiStore.isDark" src="/blocpoint-white.png" alt="BlocPoint" class="h-6 auto block" />
+        <img v-else src="/blocpoint-white.png" alt="BlocPoint" class="h-6 auto block filter invert opacity-90" />
+      </div>
+
+      <button 
+        @click="uiStore.toggleTheme()" 
+        class="w-8 h-8 flex items-center justify-center rounded-full bg-white dark:bg-slate-800/50 text-slate-500 dark:text-slate-300 border border-slate-200 dark:border-white/5 shadow-sm active:scale-95 transition-all"
+        aria-label="Toggle theme"
+      >
+        <svg v-if="uiStore.isDark" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+        <svg v-else xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+      </button>
+    </header>
+
+    <main class="flex-1 flex flex-col justify-center px-6 pb-6 relative z-10 -mt-10">
+      <div class="w-full max-w-sm mx-auto">
+        <!-- Heading -->
+        <div class="mb-8 text-left">
+          <h1 class="text-2xl font-extrabold tracking-tight">Welcome Back</h1>
+          <p class="text-slate-500 dark:text-slate-400 font-medium text-sm mt-1">Secure access to your liquidity hub</p>
+        </div>
+
+        <div class="bg-white/70 dark:bg-slate-900/50 backdrop-blur-xl border border-white dark:border-white/5 rounded-3xl p-7 shadow-2xl shadow-slate-200/50 dark:shadow-none transition-colors">
+          <form @submit.prevent="handleLogin" class="space-y-5">
+            <div class="space-y-1.5">
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 ml-1">Phone Number</label>
+              <input 
+                v-model="phone"
+                type="tel" 
+                placeholder="+234..."
+                class="w-full px-5 py-3.5 bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all dark:placeholder:text-slate-600"
+                required
+              />
+            </div>
+
+            <div class="space-y-1.5">
+              <div class="flex items-center justify-between px-1">
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Secure PIN</label>
+                <router-link to="/auth/forgot-pin" class="text-xs font-bold text-primary hover:text-indigo-400 transition-colors">Forgot?</router-link>
+              </div>
+              <input 
+                v-model="pin"
+                type="password" 
+                placeholder="••••"
+                maxlength="4"
+                class="w-full px-5 py-3.5 bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-center text-xl tracking-[1em] dark:placeholder:text-slate-600"
+                required
+              />
+            </div>
+
+            <div class="flex items-center pt-1">
+              <label class="flex items-center cursor-pointer group">
+                <input type="checkbox" v-model="rememberMe" class="w-4 h-4 rounded border-slate-300 dark:border-white/10 text-primary focus:ring-primary dark:bg-slate-800 transition-all">
+                <span class="ml-2.5 text-xs font-bold text-slate-500 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white transition-colors uppercase tracking-tight">Remember this device</span>
+              </label>
+            </div>
+
+            <button 
+              type="submit" 
+              :disabled="isLoading"
+              class="w-full py-4 rounded-2xl bg-primary hover:bg-indigo-500 text-white font-bold text-lg shadow-lg shadow-primary/25 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
+            >
+              <div v-if="isLoading" class="flex items-center justify-center gap-2">
+                <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                Verifying...
+              </div>
+              <span v-else>Sign in</span>
+            </button>
+          </form>
+
+          <div class="mt-6 text-center">
+            <p class="text-sm font-medium text-slate-500 dark:text-slate-400">
+              New to BlocPoint? 
+              <router-link to="/auth/register" class="text-primary font-bold hover:text-indigo-400 ml-1 underline underline-offset-4">Create Account</router-link>
+            </p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</template>
+
+
