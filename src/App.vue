@@ -8,19 +8,26 @@ import DesktopRestriction from './components/ui/DesktopRestriction.vue'
 
 const ui = useUIStore()
 
-const updateNetworkStatus = () => {
-  ui.isOffline = !navigator.onLine
+const handleNetworkChange = () => {
+  console.log('📡 Browser network event detected...')
+  ui.updateNetworkStatus()
 }
 
 onMounted(() => {
   ui.initTheme()
-  window.addEventListener('online', updateNetworkStatus)
-  window.addEventListener('offline', updateNetworkStatus)
+  // Ensure we check status on boot
+  ui.updateNetworkStatus()
+  
+  // Debug reference
+  window.uiStore = ui
+  
+  window.addEventListener('online', handleNetworkChange)
+  window.addEventListener('offline', handleNetworkChange)
 })
 
 onUnmounted(() => {
-  window.removeEventListener('online', updateNetworkStatus)
-  window.removeEventListener('offline', updateNetworkStatus)
+  window.removeEventListener('online', handleNetworkChange)
+  window.removeEventListener('offline', handleNetworkChange)
 })
 </script>
 

@@ -108,6 +108,10 @@ export const useUIStore = defineStore('ui', {
       }
       this.confirm.show = false
     },
+    updateNetworkStatus() {
+      this.isOffline = !navigator.onLine
+      console.log('🌐 Network Status Updated:', this.isOffline ? 'OFFLINE' : 'ONLINE')
+    }
   },
 })
 

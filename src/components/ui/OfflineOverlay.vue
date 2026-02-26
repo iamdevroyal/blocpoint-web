@@ -15,7 +15,7 @@ const ui = useUIStore()
   >
     <div 
       v-if="ui.isOffline" 
-      class="fixed inset-0 z-[100] bg-slate-50 dark:bg-dark flex flex-col items-center justify-center p-6 text-center animate-in fade-in transition-all duration-700"
+      class="fixed inset-0 z-[9999] bg-slate-50 dark:bg-dark flex flex-col items-center justify-center p-6 text-center animate-in fade-in transition-all duration-700"
     >
       <!-- Background Decorators -->
       <div class="absolute inset-0 bg-gradient-to-b from-rose-500/5 to-transparent dark:from-rose-500/10 z-0 pointer-events-none"></div>
