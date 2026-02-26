@@ -34,9 +34,9 @@ const ui = useUIStore()
         </div>
 
         <div class="space-y-4">
-          <h2 class="text-2xl font-black text-slate-800 dark:text-white tracking-tight">Offline Connection</h2>
+          <h2 class="text-2xl font-black text-slate-800 dark:text-white tracking-tight">Offline</h2>
           <p class="text-[12px] font-bold text-slate-400 uppercase tracking-widest leading-loose max-w-[280px] mx-auto">
-            You've been disconnected from our servers. Please check your internet connection and try again.
+           Please check your internet connection and try again.
           </p>
         </div>
 
@@ -50,8 +50,8 @@ const ui = useUIStore()
       
       <!-- Logo Footer -->
       <div class="absolute bottom-12 left-0 right-0 flex justify-center opacity-30">
-        <img v-if="ui.isDark" src="/blocpoint-white.png" alt="BlocPoint" class="h-5 auto" />
-        <img v-else src="/blocpoint-white.png" alt="BlocPoint" class="h-5 auto filter invert" />
+        <img v-if="ui.isDark" src="/blocpoint-white.png" alt="Blocpoint" class="h-5 auto" />
+        <img v-else src="/blocpoint-white.png" alt="Blocpoint" class="h-5 auto filter invert" />
       </div>
     </div>
   </Transition>
