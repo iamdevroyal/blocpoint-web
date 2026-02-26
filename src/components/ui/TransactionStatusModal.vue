@@ -1,6 +1,7 @@
 <script setup>
-import { onMounted, watch } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import confetti from 'canvas-confetti'
+import ShareModal from './ShareModal.vue'
 
 const props = defineProps({
   show: Boolean,
@@ -15,6 +16,8 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close', 'action'])
+
+const showShareModal = ref(false)
 
 const triggerConfetti = () => {
   if (props.type !== 'success') return
@@ -110,6 +113,7 @@ onMounted(() => {
             </button>
             <button 
               v-if="type === 'success'"
+              @click="showShareModal = true"
               class="w-full h-14 bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 text-xs font-bold rounded-2xl active:scale-95 transition-all uppercase tracking-widest"
             >
               Share Receipt
@@ -117,6 +121,13 @@ onMounted(() => {
           </div>
         </div>
       </div>
+
+      <!-- Share Modal -->
+      <ShareModal 
+        :show="showShareModal"
+        :transaction-data="{ title, amount, details }"
+        @close="showShareModal = false"
+      />
     </div>
   </Transition>
 </template>

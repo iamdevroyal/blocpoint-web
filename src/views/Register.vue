@@ -17,6 +17,10 @@ const form = ref({
   pinConfirm: ''
 })
 
+const filterNumeric = (key) => {
+  form.value[key] = form.value[key].replace(/\D/g, '')
+}
+
 const buttonText = computed(() => {
   if (isLoading.value) return 'Processing...'
   switch (step.value) {
@@ -104,8 +108,11 @@ const prevStep = () => {
                   <input 
                     v-model="form.phone"
                     type="tel" 
+                    inputmode="numeric"
+                    pattern="[0-9]*"
                     placeholder="+234..."
                     class="w-full px-5 py-3.5 bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all dark:placeholder:text-slate-600"
+                    @input="filterNumeric('phone')"
                     required
                   />
                 </div>
@@ -116,9 +123,12 @@ const prevStep = () => {
                   <input 
                     v-model="form.otp"
                     type="text" 
+                    inputmode="numeric"
+                    pattern="[0-9]*"
                     placeholder="000000"
                     maxlength="6"
                     class="w-full px-5 py-4 bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-center text-2xl tracking-[0.5em] font-mono dark:placeholder:text-slate-600"
+                    @input="filterNumeric('otp')"
                     required
                   />
                   <button type="button" @click="step = 1" class="mt-3 text-[10px] font-bold text-primary uppercase tracking-wider hover:opacity-80">Change number</button>
@@ -155,9 +165,12 @@ const prevStep = () => {
                     <input 
                       v-model="form.pin"
                       type="password" 
+                      inputmode="numeric"
+                      pattern="[0-9]*"
                       placeholder="••••"
                       maxlength="4"
                       class="w-full px-5 py-3.5 bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-center text-xl tracking-[1em]"
+                      @input="filterNumeric('pin')"
                       required
                     />
                   </div>
@@ -166,9 +179,12 @@ const prevStep = () => {
                     <input 
                       v-model="form.pinConfirm"
                       type="password" 
+                      inputmode="numeric"
+                      pattern="[0-9]*"
                       placeholder="••••"
                       maxlength="4"
                       class="w-full px-5 py-3.5 bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-center text-xl tracking-[1em]"
+                      @input="filterNumeric('pinConfirm')"
                       required
                     />
                   </div>

@@ -13,6 +13,18 @@ const isSearching = ref(false)
 const amount = ref('')
 const remark = ref('')
 const showStatus = ref(false)
+
+const handleSearchInput = (event) => {
+  const val = event.target.value.replace(/\D/g, '')
+  searchQuery.value = val
+  event.target.value = val
+}
+
+const handleAmountInput = (event) => {
+  const val = event.target.value.replace(/\D/g, '')
+  amount.value = val
+  event.target.value = val
+}
 const pin = ref(['', '', '', ''])
 const pinInputs = ref([])
 
@@ -42,14 +54,27 @@ const confirmTransfer = () => {
 
 const handlePinInput = (index, event) => {
   const val = event.target.value
-  if (val && index < 3) {
-    pinInputs.value[index + 1]?.focus()
+  // Keep only last character if multiple are entered (e.g. autofill)
+  const char = val.slice(-1)
+  
+  if (char && /^[0-9]$/.test(char)) {
+    pin.value[index] = char
+    if (index < 3) {
+      pinInputs.value[index + 1]?.focus()
+    }
+  } else {
+    // If not a digit, clear it
+    pin.value[index] = ''
   }
 }
 
 const handleBackspace = (index, event) => {
-  if (event.key === 'Backspace' && !pin.value[index] && index > 0) {
-    pinInputs.value[index - 1]?.focus()
+  if (event.key === 'Backspace') {
+    if (!pin.value[index] && index > 0) {
+      pinInputs.value[index - 1]?.focus()
+    } else {
+      pin.value[index] = ''
+    }
   }
 }
 
@@ -92,13 +117,16 @@ const goBack = () => {
       <div v-if="step === 1" class="space-y-6">
         <div class="px-2">
           <div class="relative">
-            <input 
-              v-model="searchQuery"
-              @keyup.enter="searchAccount"
-              type="text" 
-              placeholder="Phone No / Account No / Name"
-              class="w-full h-14 bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-2xl px-5 pr-14 text-sm font-bold focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-            />
+              <input 
+                v-model="searchQuery"
+                @keyup.enter="searchAccount"
+                type="text" 
+                inputmode="numeric"
+                pattern="[0-9]*"
+                placeholder="Phone No / Account No / Name"
+                class="w-full h-14 bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-2xl px-5 pr-14 text-sm font-bold focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                @input="handleSearchInput"
+              />
             <button @click="searchAccount" class="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-primary text-white rounded-xl flex items-center justify-center shadow-lg shadow-primary/30">
               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
             </button>
@@ -157,8 +185,11 @@ const goBack = () => {
             <input 
               v-model="amount"
               type="number" 
+              inputmode="numeric"
+              pattern="[0-9]*"
               placeholder="0.00" 
               class="w-full h-20 bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-[2rem] pl-14 pr-6 text-3xl font-black text-slate-800 dark:text-white focus:ring-4 focus:ring-primary/10 outline-none transition-all placeholder:text-slate-200 dark:placeholder:text-white/5"
+              @input="handleAmountInput"
             />
           </div>
           
@@ -199,9 +230,11 @@ const goBack = () => {
         <div class="flex justify-center gap-4">
           <input 
             v-for="(n, i) in 4" :key="i"
-            ref="pinInputs"
+            :ref="el => { if (el) pinInputs[i] = el }"
             v-model="pin[i]"
             type="password"
+            inputmode="numeric"
+            pattern="[0-9]*"
             maxlength="1"
             class="w-14 h-14 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-white/10 rounded-2xl text-center text-xl font-black focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all"
             @input="handlePinInput(i, $event)"

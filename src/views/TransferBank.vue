@@ -14,6 +14,18 @@ const isSearching = ref(false)
 const amount = ref('')
 const remark = ref('')
 const showStatus = ref(false)
+
+const handleAccountInput = (event) => {
+  const val = event.target.value.replace(/\D/g, '')
+  accountNo.value = val
+  event.target.value = val
+}
+
+const handleAmountInput = (event) => {
+  const val = event.target.value.replace(/\D/g, '')
+  amount.value = val
+  event.target.value = val
+}
 const pin = ref(['', '', '', ''])
 const pinInputs = ref([])
 
@@ -40,14 +52,25 @@ const validateAccount = () => {
 
 const handlePinInput = (index, event) => {
   const val = event.target.value
-  if (val && index < 3) {
-    pinInputs.value[index + 1]?.focus()
+  const char = val.slice(-1)
+  
+  if (char && /^[0-9]$/.test(char)) {
+    pin.value[index] = char
+    if (index < 3) {
+      pinInputs.value[index + 1]?.focus()
+    }
+  } else {
+    pin.value[index] = ''
   }
 }
 
 const handleBackspace = (index, event) => {
-  if (event.key === 'Backspace' && !pin.value[index] && index > 0) {
-    pinInputs.value[index - 1]?.focus()
+  if (event.key === 'Backspace') {
+    if (!pin.value[index] && index > 0) {
+      pinInputs.value[index - 1]?.focus()
+    } else {
+      pin.value[index] = ''
+    }
   }
 }
 
@@ -93,9 +116,12 @@ const goBack = () => {
           <input 
             v-model="accountNo"
             type="tel" 
+            inputmode="numeric"
+            pattern="[0-9]*"
             maxlength="10"
             placeholder="0123456789"
             class="w-full h-14 bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-2xl px-5 text-sm font-bold focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+            @input="handleAccountInput"
           />
         </div>
 
@@ -140,8 +166,11 @@ const goBack = () => {
             <input 
               v-model="amount"
               type="number" 
+              inputmode="numeric"
+              pattern="[0-9]*"
               placeholder="0.00" 
               class="w-full h-20 bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-white/10 rounded-[2rem] pl-14 pr-6 text-3xl font-black text-slate-800 dark:text-white focus:ring-4 focus:ring-primary/10 outline-none transition-all placeholder:text-slate-200 dark:placeholder:text-white/5"
+              @input="handleAmountInput"
             />
           </div>
         </div>
@@ -172,9 +201,11 @@ const goBack = () => {
         <div class="flex justify-center gap-4">
           <input 
             v-for="(n, i) in 4" :key="i"
-            ref="pinInputs"
+            :ref="el => { if (el) pinInputs[i] = el }"
             v-model="pin[i]"
             type="password"
+            inputmode="numeric"
+            pattern="[0-9]*"
             maxlength="1"
             class="w-14 h-14 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-white/10 rounded-2xl text-center text-xl font-black focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all"
             @input="handlePinInput(i, $event)"

@@ -23,9 +23,9 @@ const userDropdownRef = ref(null)
 const navItems = [
   { name: 'Home', path: '/app/dashboard', icon: '🏠' },
   { name: 'Wallet', path: '/app/wallet', icon: '👛' },
-  { name: 'Transfers', path: '/app/transfers', icon: '💸' },
+  { name: 'SoftPOS', path: '/app/softpos', icon: '📠' },
   { name: 'Tax', path: '/app/tax', icon: '📊' },
-  { name: 'Assets', path: '/app/gift-cards', icon: '🛍️' },
+  { name: 'Assets', path: '/app/assets', icon: '🛍️' },
 ]
 
 const notifications = [
@@ -51,9 +51,14 @@ const toggleUserDropdown = () => {
 }
 
 const handleLogout = () => {
-  if (confirm('Are you sure you want to log out?')) {
-    router.push('/auth/login')
-  }
+  ui.showConfirm({
+    title: 'Sign Out',
+    message: 'Are you sure you want to end your session?',
+    confirmText: 'Logout',
+    onConfirm: () => {
+      router.push('/auth/login')
+    }
+  })
 }
 
 const handleClickOutside = (event) => {
@@ -225,8 +230,8 @@ onUnmounted(() => {
           <template v-if="item.name === 'Wallet'">
             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
           </template>
-          <template v-if="item.name === 'Transfers'">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          <template v-if="item.name === 'SoftPOS'">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M7 15h.01"/><path d="M11 15h.01"/><path d="M15 15h.01"/><path d="M19 15h.01"/><path d="M7 11h.01"/><path d="M11 11h.01"/><path d="M15 11h.01"/><path d="M19 11h.01"/><path d="M7 7h.01"/><path d="M11 7h.01"/><path d="M15 7h.01"/><path d="M19 7h.01"/></svg>
           </template>
           <template v-if="item.name === 'Tax'">
             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>

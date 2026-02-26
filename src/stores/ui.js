@@ -14,6 +14,20 @@ export const useUIStore = defineStore('ui', {
     loadingMessage: '',
     // Toasts state
     toasts: [],
+    // Global Confirmation
+    confirm: {
+      show: false,
+      title: '',
+      message: '',
+      confirmText: 'Confirm',
+      cancelText: 'Cancel',
+      onConfirm: null,
+      onCancel: null,
+    },
+    // Network status
+    isOffline: !navigator.onLine,
+    // Biometric Login flag (Enabled by default for simulation)
+    biometricsEnabled: localStorage.getItem('bp_biometrics') !== 'false',
   }),
   getters: {
     isDark: (state) => state.theme === 'dark',
@@ -65,6 +79,34 @@ export const useUIStore = defineStore('ui', {
 
     clearToasts() {
       this.toasts = []
+    },
+    // Confirmation handler
+    showConfirm({ 
+      title = 'Are you sure?', 
+      message = '', 
+      confirmText = 'Confirm', 
+      cancelText = 'Cancel', 
+      onConfirm = null, 
+      onCancel = null 
+    }) {
+      this.confirm = {
+        show: true,
+        title,
+        message,
+        confirmText,
+        cancelText,
+        onConfirm,
+        onCancel
+      }
+    },
+
+    closeConfirm(confirmed = false) {
+      if (confirmed && this.confirm.onConfirm) {
+        this.confirm.onConfirm()
+      } else if (!confirmed && this.confirm.onCancel) {
+        this.confirm.onCancel()
+      }
+      this.confirm.show = false
     },
   },
 })

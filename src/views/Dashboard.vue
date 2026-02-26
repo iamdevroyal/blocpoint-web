@@ -9,7 +9,14 @@ const showBalance = ref(true)
 const activeAlert = ref(0)
 const showAlerts = ref(true)
 const showCurrencyDropdown = ref(false)
+const showCopyToast = ref(false)
 const selectedCurrency = ref({ code: 'NGN', symbol: '₦', name: 'Naira', flag: '🇳🇬' })
+
+const copyAccount = () => {
+  navigator.clipboard.writeText('7035148792')
+  showCopyToast.value = true
+  setTimeout(() => showCopyToast.value = false, 2000)
+}
 
 const currencies = [
   { code: 'NGN', symbol: '₦', name: 'Naira', flag: '🇳🇬' },
@@ -60,12 +67,14 @@ const go = (path) => router.push(path)
       <div v-if="showAlerts" class="relative group">
         <div class="flex overflow-x-auto gap-4 scrollbar-hide snap-x pb-2">
           <div v-for="alert in alerts" :key="alert.id" 
+            @click="alert.type === 'reward' ? go('/app/refer') : null"
             class="min-w-[85%] snap-center flex items-center justify-between p-4 rounded-2xl border transition-all duration-300"
             :class="[
               alert.color === 'amber' ? 'bg-amber-50/50 dark:bg-amber-500/10 border-amber-200/50 dark:border-amber-500/20' :
               alert.color === 'indigo' ? 'bg-indigo-50/50 dark:bg-indigo-500/10 border-indigo-200/50 dark:border-indigo-500/20' :
               alert.color === 'emerald' ? 'bg-emerald-50/50 dark:bg-emerald-500/10 border-emerald-200/50 dark:border-emerald-500/20' :
-              'bg-rose-50/50 dark:bg-rose-500/10 border-rose-200/50 dark:border-rose-500/20'
+              'bg-rose-50/50 dark:bg-rose-500/10 border-rose-200/50 dark:border-rose-500/20',
+              alert.type === 'reward' ? 'cursor-pointer active:scale-95' : ''
             ]"
           >
             <div class="flex items-center gap-3 overflow-hidden">
@@ -102,9 +111,18 @@ const go = (path) => router.push(path)
           
           <div class="relative z-10 space-y-6">
             <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2 px-3 py-1.5 bg-white/5 backdrop-blur-md border border-white/10 rounded-full">
+              <div 
+                @click="copyAccount"
+                class="relative flex items-center gap-2 px-3 py-1.5 bg-white/5 backdrop-blur-md border border-white/10 rounded-full cursor-pointer active:scale-95 transition-all group/copy"
+              >
                 <span class="text-xs font-bold tracking-tight opacity-90">7035148792 | Njoku Royal</span>
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="opacity-50"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="opacity-50 group-hover/copy:opacity-100 transition-opacity"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                
+                <Transition name="fade">
+                  <div v-if="showCopyToast" class="absolute inset-0 flex items-center justify-center bg-primary rounded-full text-[10px] font-bold uppercase tracking-widest text-white shadow-lg">
+                    Copied!
+                  </div>
+                </Transition>
               </div>
 
               <!-- Currency Dropdown -->
@@ -194,15 +212,15 @@ const go = (path) => router.push(path)
         </button>
 
         <button 
-          @click="go('/app/transfers')"
+          @click="go('/app/softpos')"
           class="flex flex-col items-center gap-3 p-4 bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-white/5 rounded-3xl transition-all active:scale-95 group"
         >
-          <div class="bg-rose-500/10 text-rose-500 w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm border border-black/5 dark:border-white/5 transition-transform group-hover:scale-110">
+          <div class="bg-emerald-500/10 text-emerald-500 w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm border border-black/5 dark:border-white/5 transition-transform group-hover:scale-110">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M3 10h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-8z M12 1v3 M7 1v3 M17 1v3" />
+              <rect x="2" y="4" width="20" height="16" rx="2"/><path d="M7 15h.01"/><path d="M11 15h.01"/><path d="M15 15h.01"/><path d="M19 15h.01"/><path d="M7 11h.01"/><path d="M11 11h.01"/><path d="M15 11h.01"/><path d="M19 11h.01"/><path d="M7 7h.01"/><path d="M11 7h.01"/><path d="M15 7h.01"/><path d="M19 7h.01"/>
             </svg>
           </div>
-          <span class="text-[10px] font-bold text-slate-800 dark:text-slate-200 text-center leading-tight capitalize tracking-tight">Withdraw</span>
+          <span class="text-[10px] font-bold text-slate-800 dark:text-slate-200 text-center leading-tight capitalize tracking-tight">SoftPOS</span>
         </button>
       </div>
 
@@ -260,14 +278,22 @@ const go = (path) => router.push(path)
       </div>
 
       <!-- Rewards Overlay/Section -->
-      <div class="p-5 bg-gradient-to-br from-primary/10 to-indigo-500/10 border border-primary/20 rounded-[2.5rem] relative overflow-hidden group">
+      <div 
+        @click="go('/app/refer')"
+        class="p-5 bg-gradient-to-br from-primary/10 to-indigo-500/10 border border-primary/20 rounded-[2.5rem] relative overflow-hidden group active:scale-[0.98] transition-all cursor-pointer"
+      >
         <div class="absolute -right-8 -bottom-8 w-32 h-32 bg-primary/20 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-700"></div>
         <div class="relative z-10 flex items-center justify-between">
           <div class="space-y-1">
             <h3 class="text-xs font-bold text-primary uppercase tracking-[0.2em]">Refer & Earn</h3>
             <p class="text-[11px] font-semibold text-slate-600 dark:text-slate-300">Invite friends and get <span class="text-primary font-bold">₦500</span></p>
           </div>
-          <button class="px-5 py-2.5 bg-primary text-white text-[10px] font-bold uppercase tracking-widest rounded-xl shadow-lg shadow-primary/30 active:scale-95 transition-all">Invite Now</button>
+          <div 
+            @click.stop="go('/app/refer')"
+            class="px-5 py-2.5 bg-primary text-white text-[10px] font-bold uppercase tracking-widest rounded-xl shadow-lg shadow-primary/30 active:scale-95 transition-all"
+          >
+            Invite Now
+          </div>
         </div>
       </div>
     </div>

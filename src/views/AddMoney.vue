@@ -48,11 +48,11 @@ const goBack = () => router.back()
         </div>
       </div>
 
-      <!-- Methods Grid -->
       <div class="space-y-4">
         <button 
           v-for="method in depositMethods" 
           :key="method.id"
+          @click="router.push(`/app/add-money/${method.id}`)"
           class="w-full flex items-center justify-between p-5 bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-white/5 rounded-[2rem] text-left transition-all active:scale-[0.98] group"
         >
           <div class="flex items-center gap-5">

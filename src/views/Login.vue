@@ -11,6 +11,14 @@ const pin = ref('')
 const rememberMe = ref(false)
 const isLoading = ref(false)
 
+const handlePhoneInput = (event) => {
+  phone.value = event.target.value.replace(/\D/g, '')
+}
+
+const handlePinInput = (event) => {
+  pin.value = event.target.value.replace(/\D/g, '')
+}
+
 const handleLogin = async () => {
   isLoading.value = true
   // Simulate login delay
@@ -19,10 +27,49 @@ const handleLogin = async () => {
     router.push('/app/dashboard')
   }, 1000)
 }
+
+const isBiometricScanning = ref(false)
+
+const handleBiometricLogin = () => {
+  isBiometricScanning.value = true
+  // Simulate face/fingerprint scan
+  setTimeout(() => {
+    isBiometricScanning.value = false
+    router.push('/app/dashboard')
+  }, 2500)
+}
+onMounted(() => {
+  console.log('🛡️ Biometric Login Status:', uiStore.biometricsEnabled ? 'ENABLED' : 'DISABLED')
+})
 </script>
 
 <template>
   <div class="min-h-[100dvh] flex flex-col transition-colors duration-500 bg-slate-50 dark:bg-dark text-slate-900 dark:text-white relative overflow-hidden">
+    
+    <!-- Biometric Scanning Overlay -->
+    <Transition
+      enter-active-class="transition duration-300 ease-out"
+      enter-from-class="opacity-0 backdrop-blur-0"
+      enter-to-class="opacity-100 backdrop-blur-xl"
+      leave-active-class="transition duration-300 ease-in"
+      leave-from-class="opacity-100 backdrop-blur-xl"
+      leave-to-class="opacity-0 backdrop-blur-0"
+    >
+      <div v-if="isBiometricScanning" class="fixed inset-0 z-50 bg-black/40 flex flex-col items-center justify-center p-6 text-center">
+        <div class="relative w-24 h-24 mb-6">
+          <div class="absolute inset-0 border-4 border-primary rounded-[2rem] animate-ping opacity-20"></div>
+          <div class="w-full h-full bg-white dark:bg-slate-900 rounded-[2rem] border-2 border-primary/50 flex items-center justify-center text-5xl shadow-2xl relative overflow-hidden">
+            <span class="animate-pulse">🤳</span>
+            <!-- Scanning Line -->
+            <div class="absolute top-0 left-0 right-0 h-1 bg-primary shadow-lg shadow-primary/80 animate-[scan_2s_infinite]"></div>
+          </div>
+        </div>
+        <div class="space-y-2">
+          <h3 class="text-white text-xl font-black">Biometric Check</h3>
+          <p class="text-white/70 text-[10px] font-bold uppercase tracking-widest">Scanning Face/Fingerprint...</p>
+        </div>
+      </div>
+    </Transition>
     
     <!-- Background Decorators -->
     <div class="absolute top-0 inset-x-0 h-[400px] bg-gradient-to-b from-primary/5 to-transparent dark:from-primary/10 z-0 pointer-events-none"></div>
@@ -60,8 +107,11 @@ const handleLogin = async () => {
               <input 
                 v-model="phone"
                 type="tel" 
+                inputmode="numeric"
+                pattern="[0-9]*"
                 placeholder="+234..."
                 class="w-full px-5 py-3.5 bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all dark:placeholder:text-slate-600"
+                @input="handlePhoneInput"
                 required
               />
             </div>
@@ -74,9 +124,12 @@ const handleLogin = async () => {
               <input 
                 v-model="pin"
                 type="password" 
+                inputmode="numeric"
+                pattern="[0-9]*"
                 placeholder="••••"
                 maxlength="4"
                 class="w-full px-5 py-3.5 bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-center text-xl tracking-[1em] dark:placeholder:text-slate-600"
+                @input="handlePinInput"
                 required
               />
             </div>
@@ -88,17 +141,30 @@ const handleLogin = async () => {
               </label>
             </div>
 
-            <button 
-              type="submit" 
-              :disabled="isLoading"
-              class="w-full py-4 rounded-2xl bg-primary hover:bg-indigo-500 text-white font-bold text-lg shadow-lg shadow-primary/25 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
-            >
-              <div v-if="isLoading" class="flex items-center justify-center gap-2">
-                <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                Verifying...
-              </div>
-              <span v-else>Sign in</span>
-            </button>
+            <div class="flex gap-3 pt-2">
+              <button 
+                type="submit" 
+                :disabled="isLoading || isBiometricScanning"
+                class="flex-1 py-4 rounded-2xl bg-primary hover:bg-indigo-500 text-white font-bold text-lg shadow-lg shadow-primary/25 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
+              >
+                <div v-if="isLoading" class="flex items-center justify-center gap-2">
+                  <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                  Verifying...
+                </div>
+                <span v-else>Sign in</span>
+              </button>
+
+              <button 
+                v-if="uiStore.biometricsEnabled"
+                type="button"
+                @click="handleBiometricLogin"
+                :disabled="isLoading || isBiometricScanning"
+                class="w-16 h-[60px] rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-center text-2xl shadow-inner active:scale-95 transition-all"
+                title="Login with Biometrics"
+              >
+                🤳
+              </button>
+            </div>
           </form>
 
           <div class="mt-6 text-center">
@@ -112,5 +178,17 @@ const handleLogin = async () => {
     </main>
   </div>
 </template>
+
+<style>
+@keyframes scan {
+  0% { transform: translateY(0); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(96px); opacity: 0; }
+}
+
+.font-black { font-weight: 900; }
+.tracking-tight { letter-spacing: -0.025em; }
+</style>
 
 

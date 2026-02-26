@@ -19,8 +19,8 @@ defineProps({
         <div class="relative w-20 h-20">
           <div class="absolute inset-0 rounded-full border-4 border-primary/20"></div>
           <div class="absolute inset-0 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
-          <div class="absolute inset-4 rounded-full bg-primary/10 flex items-center justify-center animate-pulse">
-            <span class="text-xl">⚡</span>
+          <div class="absolute inset-4 rounded-full bg-white dark:bg-slate-900 shadow-inner flex items-center justify-center animate-pulse overflow-hidden p-2">
+            <img src="/blocpoint-fav-white.png" alt="Loading" class="w-full h-full object-contain" />
           </div>
         </div>
         
