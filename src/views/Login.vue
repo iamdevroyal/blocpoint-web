@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUIStore } from '../stores/ui'
 
@@ -58,8 +58,8 @@ onMounted(() => {
       <div v-if="isBiometricScanning" class="fixed inset-0 z-50 bg-black/40 flex flex-col items-center justify-center p-6 text-center">
         <div class="relative w-24 h-24 mb-6">
           <div class="absolute inset-0 border-4 border-primary rounded-[2rem] animate-ping opacity-20"></div>
-          <div class="w-full h-full bg-white dark:bg-slate-900 rounded-[2rem] border-2 border-primary/50 flex items-center justify-center text-5xl shadow-2xl relative overflow-hidden">
-            <span class="animate-pulse">🤳</span>
+          <div class="w-full h-full bg-white dark:bg-slate-900 rounded-[2rem] border-2 border-primary/50 flex items-center justify-center shadow-2xl relative overflow-hidden">
+            <img src="/biometric.png" alt="Biometric" class="w-12 h-12 object-contain animate-pulse" />
             <!-- Scanning Line -->
             <div class="absolute top-0 left-0 right-0 h-1 bg-primary shadow-lg shadow-primary/80 animate-[scan_2s_infinite]"></div>
           </div>
@@ -160,9 +160,8 @@ onMounted(() => {
                 @click="handleBiometricLogin"
                 :disabled="isLoading || isBiometricScanning"
                 class="w-16 h-[60px] rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 flex items-center justify-center text-2xl shadow-inner active:scale-95 transition-all"
-                title="Login with Biometrics"
               >
-                🤳
+                <img src="/biometric.png" alt="Biometric" class="w-7 h-7 object-contain opacity-80" />
               </button>
             </div>
           </form>
