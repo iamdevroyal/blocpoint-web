@@ -5,18 +5,20 @@ import LoadingOverlay from './components/ui/LoadingOverlay.vue'
 import ConfirmModal from './components/ui/ConfirmModal.vue'
 import OfflineOverlay from './components/ui/OfflineOverlay.vue'
 import DesktopRestriction from './components/ui/DesktopRestriction.vue'
+import IOSInstallPrompt from './components/ui/IOSInstallPrompt.vue'
 
 const ui = useUIStore()
 
 const handleNetworkChange = () => {
   console.log('📡 Browser network event detected...')
-  ui.updateNetworkStatus()
+  ui.isOffline = !navigator.onLine
+  console.log('🌐 Network Status Updated:', ui.isOffline ? 'OFFLINE' : 'ONLINE')
 }
 
 onMounted(() => {
   ui.initTheme()
   // Ensure we check status on boot
-  ui.updateNetworkStatus()
+  handleNetworkChange()
   
   // Debug reference
   window.uiStore = ui
@@ -40,5 +42,6 @@ onUnmounted(() => {
     <ConfirmModal />
     <OfflineOverlay />
     <DesktopRestriction />
+    <IOSInstallPrompt />
   </div>
 </template>

@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useUIStore } from '../../stores/ui'
 import AppShell from '../../components/layout/AppShell.vue'
 import PinInput from '../../components/ui/PinInput.vue'
 
@@ -23,6 +24,8 @@ const desc = computed(() => {
   return 'Re-enter your new PIN to verify it is correct'
 })
 
+const uiStore = useUIStore()
+
 const handleComplete = (val) => {
   error.value = ''
   if (step.value === 1) {
@@ -39,9 +42,15 @@ const handleComplete = (val) => {
     step.value = 3
   } else if (step.value === 3) {
     if (val === newPin.value) {
-      // Success
-      alert('PIN changed successfully!')
-      router.back()
+      // Success - Use custom confirm modal
+      uiStore.showConfirm({
+        title: 'PIN Updated',
+        message: 'Your security PIN has been successfully changed.',
+        confirmText: 'Great!',
+        onConfirm: () => {
+          router.back()
+        }
+      })
     } else {
       error.value = 'PINs do not match'
       confirmPin.value = ''

@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useUIStore } from '../../stores/ui'
 import AppShell from '../../components/layout/AppShell.vue'
 import PinInput from '../../components/ui/PinInput.vue'
 
@@ -23,6 +24,8 @@ const desc = computed(() => {
   return 'Re-enter your new POS PIN to ensure accuracy'
 })
 
+const uiStore = useUIStore()
+
 const handleComplete = (val) => {
   error.value = ''
   if (step.value === 1) {
@@ -39,9 +42,15 @@ const handleComplete = (val) => {
     step.value = 3
   } else if (step.value === 3) {
     if (val === newPosPin.value) {
-      // Success
-      alert('POS PIN reset successfully!')
-      router.back()
+      // Success - Use custom confirm modal
+      uiStore.showConfirm({
+        title: 'POS PIN Reset',
+        message: 'Your POS security PIN has been successfully updated.',
+        confirmText: 'Great!',
+        onConfirm: () => {
+          router.back()
+        }
+      })
     } else {
       error.value = 'PINs do not match'
       confirmPosPin.value = ''

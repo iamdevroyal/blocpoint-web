@@ -20,7 +20,14 @@ const saveTaxSettings = () => {
   // Simulate API call
   setTimeout(() => {
     isSaving.value = false
-    ui.showToast('Tax compliance settings updated!', 'success')
+    ui.showConfirm({
+      title: 'Settings Saved',
+      message: 'Your tax compliance settings have been successfully updated.',
+      confirmText: 'Great!',
+      onConfirm: () => {
+        // Just close modal, user stays on page to see their settings
+      }
+    })
   }, 1500)
 }
 </script>

@@ -94,12 +94,12 @@ const scrollToWallet = (index) => {
               <div>
                 <p class="text-[10px] font-semibold opacity-40 tracking-wider mb-1">Available Balance</p>
                 <h2 class="text-3xl font-semibold tracking-tighter transition-all duration-300" :class="{ 'blur-md select-none opacity-40': isBalanceHidden }">
-                  {{ wallet.symbol }}{{ wallet.balance }}
+                  {{ wallet.balance }}
                 </h2>
                 <div class="flex items-center gap-2 mt-2">
                   <span class="w-1 h-1 rounded-full bg-emerald-500"></span>
                   <p class="text-[10px] font-medium opacity-60">
-                    Pending: {{ wallet.symbol }}{{ wallet.pending }}
+                    Pending: {{ wallet.pending }}
                   </p>
                 </div>
               </div>

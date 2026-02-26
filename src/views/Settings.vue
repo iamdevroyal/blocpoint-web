@@ -28,8 +28,8 @@ const settingsGroups = [
   {
     title: 'Support',
     items: [
-      { id: 'help', name: 'Help Center', icon: '📖', path: '/app/support' },
-      { id: 'contact', name: 'Contact Support', icon: '🎧', path: '/app/support' },
+      { id: 'help', name: 'Help Center', icon: '📖', desc: 'FAQ & Platform Guide', path: '/app/help-center' },
+      { id: 'contact', name: 'Contact Support', icon: '🎧', desc: '24/7 Human Assistance', path: '/app/support' },
     ]
   }
 ]

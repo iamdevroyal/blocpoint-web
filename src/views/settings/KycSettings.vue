@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
+import { useUIStore } from '../../stores/ui'
 import AppShell from '../../components/layout/AppShell.vue'
 
 const currentLevel = ref(1) // Start at Level 1 for demo
@@ -29,6 +30,8 @@ const handleFileUpload = (e) => {
   }
 }
 
+const uiStore = useUIStore()
+
 const startCamera = async () => {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ 
@@ -38,7 +41,12 @@ const startCamera = async () => {
     if (videoEl.value) videoEl.value.srcObject = stream
     isCameraActive.value = true
   } catch (err) {
-    alert('Camera access denied. Please enable camera permissions.')
+    uiStore.showConfirm({
+      title: 'Camera Error',
+      message: 'Camera access was denied. Please check your browser permissions to continue.',
+      confirmText: 'Okay',
+      cancelText: '' // No cancel needed for this notice
+    })
   }
 }
 

@@ -11,6 +11,7 @@ import Tax from '../views/app/Tax.vue'
 import GiftCards from '../views/app/GiftCards.vue'
 import GiftCardsCatalog from '../views/app/GiftCardsCatalog.vue'
 import Support from '../views/Support.vue'
+import HelpCenter from '../views/HelpCenter.vue'
 import Profile from '../views/Profile.vue'
 import Settings from '../views/Settings.vue'
 import Stablecoins from '../views/app/Stablecoins.vue'
@@ -56,6 +57,7 @@ const routes = [
   { path: '/app/gift-cards/catalog', component: GiftCardsCatalog, meta: { requiresAuth: true } },
   { path: '/app/stablecoins', component: Stablecoins, meta: { requiresAuth: true } },
   { path: '/app/support', component: Support, meta: { requiresAuth: true } },
+  { path: '/app/help-center', component: HelpCenter, meta: { requiresAuth: true } },
   { path: '/app/profile', component: Profile, meta: { requiresAuth: true } },
   { path: '/app/settings', component: Settings, meta: { requiresAuth: true } },
   { path: '/app/settings/security', component: SecuritySettings, meta: { requiresAuth: true } },
