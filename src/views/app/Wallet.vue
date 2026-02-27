@@ -77,7 +77,7 @@ const scrollToWallet = (index) => {
             <div class="relative z-10 h-full flex flex-col justify-between" :class="wallet.textColor">
               <div class="flex justify-between items-start">
                 <div>
-                  <h3 class="text-[10px] font-semibold opacity-50 tracking-widest">Your {{ wallet.name }} Wallet</h3>
+                  <h3 class="text-[10px] font-semibold opacity-50 tracking-widest">{{ wallet.name }} Wallet</h3>
                   <p class="text-xl font-semibold tracking-tight">{{ wallet.code }}</p>
                 </div>
                 <div class="flex items-center gap-2">
