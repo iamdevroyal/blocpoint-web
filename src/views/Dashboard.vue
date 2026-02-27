@@ -212,7 +212,7 @@ const go = (path) => router.push(path)
         </button>
 
         <button 
-          @click="go('/app/softpos')"
+          @click="go('/app/cards')"
           class="flex flex-col items-center gap-3 p-4 bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-white/5 rounded-3xl transition-all active:scale-95 group"
         >
           <div class="bg-emerald-500/10 text-emerald-500 w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm border border-black/5 dark:border-white/5 transition-transform group-hover:scale-110">
@@ -220,7 +220,7 @@ const go = (path) => router.push(path)
               <rect x="2" y="4" width="20" height="16" rx="2"/><path d="M7 15h.01"/><path d="M11 15h.01"/><path d="M15 15h.01"/><path d="M19 15h.01"/><path d="M7 11h.01"/><path d="M11 11h.01"/><path d="M15 11h.01"/><path d="M19 11h.01"/><path d="M7 7h.01"/><path d="M11 7h.01"/><path d="M15 7h.01"/><path d="M19 7h.01"/>
             </svg>
           </div>
-          <span class="text-[10px] font-bold text-slate-800 dark:text-slate-200 text-center leading-tight capitalize tracking-tight">SoftPOS</span>
+          <span class="text-[10px] font-bold text-slate-800 dark:text-slate-200 text-center leading-tight capitalize tracking-tight">Cards</span>
         </button>
       </div>
 

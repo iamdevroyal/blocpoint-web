@@ -34,6 +34,15 @@ const recentTransfers = [
   { id: 3, name: 'Dave Chappelle', acc: '8055554444', icon: '👤', color: 'bg-emerald-500/10 text-emerald-500' },
 ]
 
+const favoriteTransfers = [
+  { id: 4, name: 'Emma Stone', acc: '7022223333', icon: '⭐', color: 'bg-amber-500/10 text-amber-500' },
+  { id: 5, name: 'Ryan Gosling', acc: '8099998888', icon: '⭐', color: 'bg-rose-500/10 text-rose-500' },
+]
+
+const displayedUsers = computed(() => {
+  return activeTab.value === 'Recents' ? recentTransfers : favoriteTransfers
+})
+
 const searchAccount = () => {
   if (!searchQuery.value) return
   isSearching.value = true
@@ -43,7 +52,7 @@ const searchAccount = () => {
   }, 1500)
 }
 
-const selectRecent = (user) => {
+const selectUser = (user) => {
   searchQuery.value = user.acc
   step.value = 2
 }
@@ -149,9 +158,9 @@ const goBack = () => {
 
           <div class="space-y-3 px-2">
             <button 
-              v-for="user in recentTransfers" 
+              v-for="user in displayedUsers" 
               :key="user.id"
-              @click="selectRecent(user)"
+              @click="selectUser(user)"
               class="w-full flex items-center gap-4 p-4 bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-white/5 rounded-2xl group transition-all active:scale-[0.98]"
             >
               <div :class="[user.color, 'w-12 h-12 rounded-2xl flex items-center justify-center text-xl shadow-inner group-hover:scale-110 transition-transform']">

@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import AppShell from '../components/layout/AppShell.vue'
 import LoadingOverlay from '../components/ui/LoadingOverlay.vue'
@@ -9,6 +9,7 @@ const router = useRouter()
 const step = ref(1) // 1: Acc No & Bank, 2: Amount & Confirm, 3: PIN
 const accountNo = ref('')
 const selectedBank = ref(null)
+const verifiedName = ref('')
 const showBankModal = ref(false)
 const isSearching = ref(false)
 const amount = ref('')
@@ -19,6 +20,9 @@ const handleAccountInput = (event) => {
   const val = event.target.value.replace(/\D/g, '')
   accountNo.value = val
   event.target.value = val
+  
+  // Clear verification if input changes
+  verifiedName.value = ''
 }
 
 const handleAmountInput = (event) => {
@@ -40,15 +44,21 @@ const banks = [
   { id: 8, name: 'Moniepoint', logo: '🏦' },
 ]
 
-const validateAccount = () => {
-  if (accountNo.value.length === 10 && selectedBank.value) {
+// Automated Verification Watcher
+watch([accountNo, selectedBank], ([newAcc, newBank]) => {
+  if (newAcc.length === 10 && newBank) {
     isSearching.value = true
+    verifiedName.value = ''
+    
+    // Simulate API Verification
     setTimeout(() => {
       isSearching.value = false
-      step.value = 2
+      verifiedName.value = 'Njoku Nnaemeka Royal'
     }, 1500)
+  } else {
+    verifiedName.value = ''
   }
-}
+})
 
 const handlePinInput = (index, event) => {
   const val = event.target.value
@@ -138,12 +148,27 @@ const goBack = () => {
           </button>
         </div>
 
+        <!-- Verification Detail Display -->
+        <div v-if="verifiedName" class="p-5 bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/20 rounded-3xl flex items-center gap-4 animate-in zoom-in-95 duration-500">
+          <div class="w-10 h-10 bg-emerald-500 text-white rounded-xl flex items-center justify-center text-lg">👤</div>
+          <div>
+            <h4 class="text-[11px] font-black text-emerald-500 uppercase tracking-widest">Account Verified</h4>
+            <p class="text-sm font-extrabold text-slate-800 dark:text-white">{{ verifiedName }}</p>
+          </div>
+        </div>
+
+        <!-- Loading State -->
+        <div v-if="isSearching" class="p-5 flex items-center justify-center gap-3 bg-slate-50 dark:bg-white/5 rounded-3xl border border-dashed border-slate-200 dark:border-white/10">
+          <div class="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Verifying Account...</span>
+        </div>
+
         <button 
-          @click="validateAccount"
-          :disabled="accountNo.length !== 10 || !selectedBank"
+          @click="step = 2"
+          :disabled="!verifiedName"
           class="w-full h-14 bg-primary text-white text-xs font-bold rounded-2xl shadow-lg shadow-primary/30 active:scale-95 transition-all uppercase tracking-widest mt-4 disabled:opacity-50 disabled:pointer-events-none"
         >
-          Verify Account
+          Proceed
         </button>
       </div>
 
@@ -153,8 +178,8 @@ const goBack = () => {
         <div class="p-5 bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/20 rounded-3xl flex items-center gap-4">
           <div class="w-12 h-12 bg-emerald-500 text-white rounded-2xl flex items-center justify-center text-xl">👤</div>
           <div>
-            <h4 class="text-sm font-extrabold text-slate-800 dark:text-white">Njoku Nnaemeka Royal</h4>
-            <p class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">{{ selectedBank.name }} • 7035148792</p>
+            <h4 class="text-sm font-extrabold text-slate-800 dark:text-white">{{ verifiedName }}</h4>
+            <p class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">{{ selectedBank.name }} • {{ accountNo }}</p>
           </div>
         </div>
 

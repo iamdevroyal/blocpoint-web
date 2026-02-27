@@ -36,6 +36,8 @@ import KycSettings from '../views/settings/KycSettings.vue'
 import TaxSettings from '../views/settings/TaxSettings.vue'
 import ChangeLoginPin from '../views/settings/ChangeLoginPin.vue'
 import ResetPosPin from '../views/settings/ResetPosPin.vue'
+import Cards from '../views/app/Cards.vue'
+import CardApplication from '../views/app/CardApplication.vue'
 
 const routes = [
   // Public / install + onboarding
@@ -80,6 +82,8 @@ const routes = [
   { path: '/app/loans', component: Loans, meta: { requiresAuth: true } },
   { path: '/app/convert', component: Convert, meta: { requiresAuth: true } },
   { path: '/app/refer', component: ReferEarn, meta: { requiresAuth: true } },
+  { path: '/app/cards', component: Cards, meta: { requiresAuth: true } },
+  { path: '/app/cards/apply', component: CardApplication, meta: { requiresAuth: true } },
 ]
 
 const router = createRouter({
