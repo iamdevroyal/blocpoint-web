@@ -38,6 +38,7 @@ import ChangeLoginPin from '../views/settings/ChangeLoginPin.vue'
 import ResetPosPin from '../views/settings/ResetPosPin.vue'
 import Cards from '../views/app/Cards.vue'
 import CardApplication from '../views/app/CardApplication.vue'
+import KnowledgeArticle from '../views/app/KnowledgeArticle.vue'
 
 const routes = [
   // Public / install + onboarding
@@ -84,6 +85,7 @@ const routes = [
   { path: '/app/refer', component: ReferEarn, meta: { requiresAuth: true } },
   { path: '/app/cards', component: Cards, meta: { requiresAuth: true } },
   { path: '/app/cards/apply', component: CardApplication, meta: { requiresAuth: true } },
+  { path: '/app/knowledge/:id', component: KnowledgeArticle, meta: { requiresAuth: true } },
 ]
 
 const router = createRouter({

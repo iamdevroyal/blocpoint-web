@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import AppShell from '../components/layout/AppShell.vue'
+import { articles } from '../data/knowledge'
 
 const router = useRouter()
 
@@ -57,6 +58,10 @@ const transactions = [
 ]
 
 const go = (path) => router.push(path)
+
+const openArticle = (article) => {
+  router.push(`/app/knowledge/${article.id}`)
+}
 </script>
 
 <template>
@@ -296,6 +301,36 @@ const go = (path) => router.push(path)
           </div>
         </div>
       </div>
+
+      <!-- Knowledge Base Section -->
+      <div class="space-y-4">
+        <div class="flex items-center justify-between px-2">
+          <h3 class="text-sm font-bold text-slate-800 dark:text-slate-200 uppercase tracking-tighter">Knowledge Base</h3>
+          <button @click="go('/app/help')" class="text-xs font-semibold text-primary uppercase tracking-wider">Explore</button>
+        </div>
+        <div class="flex overflow-x-auto gap-4 scrollbar-hide snap-x pb-4">
+          <div 
+            v-for="article in articles" 
+            :key="article.id"
+            @click="openArticle(article)"
+            class="min-w-[75%] snap-center aspect-[4/3] rounded-[2.5rem] bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-white/5 relative overflow-hidden group cursor-pointer active:scale-95 transition-all"
+          >
+            <img :src="article.image" class="absolute inset-0 w-full h-full object-cover opacity-20 group-hover:scale-110 transition-transform duration-700" />
+            <div class="absolute inset-0 bg-gradient-to-t from-white dark:from-slate-900 via-transparent to-transparent"></div>
+            
+            <div class="absolute inset-0 p-6 flex flex-col justify-between z-10">
+              <div class="w-10 h-10 rounded-xl bg-primary/20 backdrop-blur-md flex items-center justify-center text-xl shadow-lg border border-white/10">
+                {{ article.icon }}
+              </div>
+              <div class="space-y-1">
+                <span class="text-[9px] font-black text-primary uppercase tracking-[0.2em]">{{ article.category }}</span>
+                <h4 class="text-sm font-black text-slate-800 dark:text-white tracking-tight leading-tight">{{ article.title }}</h4>
+                <p class="text-[10px] font-medium text-slate-500 dark:text-slate-400 line-clamp-2">{{ article.excerpt }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </AppShell>
 </template>
@@ -309,5 +344,33 @@ const go = (path) => router.push(path)
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+.zoom-enter-active, .zoom-leave-active {
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.zoom-enter-from, .zoom-leave-to {
+  opacity: 0;
+  transform: scale(0.9);
+}
+
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+.article-content :deep(p) {
+  margin-bottom: 1.25rem;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+.article-content :deep(strong) {
+  font-weight: 900;
+  color: #0c0c0d;
+}
+
+.dark .article-content :deep(strong) {
+  color: #fff;
 }
 </style>
