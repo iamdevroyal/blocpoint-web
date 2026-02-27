@@ -9,6 +9,15 @@
   --color-muted: #64748b;
 }
 
+/* Hide scrollbars globally while maintaining functionality */
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+*::-webkit-scrollbar {
+  display: none;
+}
+
 /* Ensure class-based dark mode works in Tailwind 4 */
 @custom-variant dark (&:where(.dark, .dark *));
 

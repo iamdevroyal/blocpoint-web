@@ -306,7 +306,7 @@ const openArticle = (article) => {
       <div class="space-y-4">
         <div class="flex items-center justify-between px-2">
           <h3 class="text-sm font-bold text-slate-800 dark:text-slate-200 uppercase tracking-tighter">Knowledge Base</h3>
-          <button @click="go('/app/help')" class="text-xs font-semibold text-primary uppercase tracking-wider">Explore</button>
+          <button @click="go('/app/help-center')" class="text-xs font-semibold text-primary uppercase tracking-wider">Explore</button>
         </div>
         <div class="flex overflow-x-auto gap-4 scrollbar-hide snap-x pb-4">
           <div 
