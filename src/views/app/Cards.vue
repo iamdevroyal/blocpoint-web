@@ -180,10 +180,10 @@ const confirmDelete = () => {
           class="flex overflow-x-auto gap-2 snap-x scrollbar-hide px-6 pb-6 items-center"
         >
           <div v-for="(design, idx) in virtualDesigns" :key="design.id"
-            class="min-w-[85%] snap-center h-52 rounded-[2rem] relative overflow-hidden shadow-2xl transition-all duration-500 bg-slate-100 dark:bg-white/5"
+            class="min-w-[85%] snap-center h-52 p-2 rounded-[2rem] relative overflow-hidden shadow-2xl transition-all duration-500 bg-slate-100 dark:bg-white/5"
             :class="[activeIndex === idx ? 'scale-100 opacity-100 z-10' : 'scale-90 opacity-40']"
           >
-            <img :src="design.image" class="w-full h-full object-cover rounded-[2rem]" />
+            <img :src="design.image" class="w-full h-full object-contain rounded-[1.5rem]" />
           </div>
         </div>
 
