@@ -77,15 +77,31 @@ const handleScroll = (e) => {
 const myCards = ref([
   { 
     id: 1, 
-    name: 'Virtual Classic', 
-    design: 'bg-gradient-to-br from-emerald-400 to-emerald-600', 
-    type: 'Verve', 
-    number: '5061 23** **** 8792', 
-    fullNumber: '5061 2345 6789 8792',
-    expiry: '05/27', 
-    cvv: '321',
-    balance: '4,200.00',
-    currency: 'NGN'
+    name: 'Visa Virtual Card', 
+    design: 'bg-gradient-to-br from-slate-800 to-slate-900', 
+    type: 'VISA', 
+    number: '4532 11** **** 9012', 
+    fullNumber: '4532 1121 8763 9012',
+    expiry: '09/28', 
+    cvv: '884',
+    balance: '1,250.00',
+    currency: 'USD',
+    isLocked: false,
+    accent: 'bg-indigo-500'
+  },
+  { 
+    id: 2, 
+    name: 'Mastercard Virtual', 
+    design: 'bg-gradient-to-br from-emerald-600 to-emerald-900', 
+    type: 'MASTERCARD', 
+    number: '5241 88** **** 4421', 
+    fullNumber: '5241 8892 0012 4421',
+    expiry: '12/27', 
+    cvv: '102',
+    balance: '500,000.00',
+    currency: 'NGN',
+    isLocked: false,
+    accent: 'bg-orange-500'
   }
 ])
 
@@ -219,45 +235,60 @@ const confirmDelete = () => {
       <div v-else class="space-y-6 animate-in fade-in duration-500">
         <div v-for="card in myCards" :key="card.id" class="space-y-4">
             <!-- Card Visual -->
-            <div :class="[card.design, 'h-52 rounded-[2rem] p-8 text-white flex flex-col justify-between relative overflow-hidden shadow-2xl']">
+            <div :class="[card.design, 'h-[220px] rounded-[2.5rem] p-7 text-white flex flex-col justify-between relative overflow-hidden shadow-2xl transition-transform active:scale-[0.98]']">
                 <!-- Lock Overlay -->
-                <div v-if="card.isLocked" class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm z-20 flex flex-col items-center justify-center gap-2">
-                    <div class="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-2xl">🔒</div>
-                    <p class="text-[10px] font-black uppercase tracking-widest">Card Locked</p>
+                <div v-if="card.isLocked" class="absolute inset-0 bg-slate-900/80 backdrop-blur-md z-20 flex flex-col items-center justify-center gap-3">
+                    <div class="w-14 h-14 rounded-full bg-white/10 flex items-center justify-center text-3xl shadow-inner border border-white/5">🔒</div>
+                    <p class="text-[11px] font-black uppercase tracking-[0.2em] text-white/90">Temporary Locked</p>
                 </div>
 
-                <div class="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
+                <div class="absolute -right-20 -top-20 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
+                <div class="absolute -left-20 -bottom-20 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
                 
                 <div class="flex justify-between items-start z-10">
-                    <span class="text-xl font-black italic tracking-tighter">BlocPoint</span>
-                    <span class="text-[10px] font-black uppercase tracking-widest opacity-80">{{ card.type }}</span>
+                    <div class="flex flex-col gap-0.5">
+                        <span class="text-lg font-black italic tracking-tighter leading-none">BlocPoint</span>
+                        <span class="text-[8px] font-black uppercase tracking-[0.2em] opacity-50">{{ card.name }}</span>
+                    </div>
+                    <div class="flex flex-col items-end gap-1">
+                        <div class="h-6 flex items-center">
+                            <span v-if="card.type === 'VISA'" class="text-lg font-black italic tracking-tighter">VISA</span>
+                            <div v-else class="flex -space-x-2">
+                                <div class="w-5 h-5 rounded-full bg-rose-500/90"></div>
+                                <div class="w-5 h-5 rounded-full bg-amber-500/90"></div>
+                            </div>
+                        </div>
+                        <span class="text-[8px] font-black uppercase tracking-widest opacity-80">{{ card.type }} PLATINUM</span>
+                    </div>
                 </div>
 
-                <div class="space-y-4 z-10">
-                    <div class="space-y-1">
-                        <p class="text-[10px] font-black text-white/60 uppercase tracking-widest">Card Number</p>
-                        <p class="text-xl font-bold tracking-[0.2em]" :class="{ 'blur-md': !isRevealed }">
+                <div class="space-y-5 z-10">
+                    <div class="space-y-1.5">
+                        <p class="text-[9px] font-black text-white/40 uppercase tracking-[0.2em]">Card Number</p>
+                        <p class="text-lg font-black tracking-[0.25em] font-mono whitespace-nowrap overflow-hidden" :class="{ 'blur-md opacity-40 select-none': !isRevealed }">
                             {{ isRevealed ? card.fullNumber : card.number }}
                         </p>
                     </div>
 
-                    <div class="flex gap-8">
+                    <div class="flex gap-10">
                         <div class="space-y-1">
-                            <p class="text-[8px] font-black text-white/60 uppercase tracking-widest">Expiry</p>
-                            <p class="text-sm font-bold" :class="{ 'blur-md': !isRevealed }">{{ card.expiry }}</p>
+                            <p class="text-[8px] font-black text-white/40 uppercase tracking-[0.2em]">Valid Thru</p>
+                            <p class="text-sm font-black tracking-widest" :class="{ 'blur-md opacity-40 select-none': !isRevealed }">{{ card.expiry }}</p>
                         </div>
                         <div class="space-y-1">
-                            <p class="text-[8px] font-black text-white/60 uppercase tracking-widest">CVV</p>
-                            <p class="text-sm font-bold" :class="{ 'blur-md': !isRevealed }">{{ card.cvv }}</p>
+                            <p class="text-[8px] font-black text-white/40 uppercase tracking-[0.2em]">CVV</p>
+                            <p class="text-sm font-black tracking-widest" :class="{ 'blur-md opacity-40 select-none': !isRevealed }">{{ card.cvv }}</p>
                         </div>
                     </div>
                 </div>
 
                 <div class="flex justify-between items-end z-10">
-                    <div class="w-10 h-7 bg-amber-400/80 rounded-md shadow-inner"></div>
+                    <div class="w-12 h-9 bg-gradient-to-br from-amber-400/90 to-amber-600 rounded-lg shadow-inner flex items-center justify-center border border-white/10">
+                        <div class="w-full h-[1px] bg-black/10"></div>
+                    </div>
                     <div class="text-right">
-                        <p class="text-[8px] font-black text-white/60 uppercase tracking-widest">Balance</p>
-                        <p class="text-sm font-black">{{ card.currency }} {{ card.balance }}</p>
+                        <p class="text-[9px] font-black text-white/40 uppercase tracking-[0.2em]">Available Balance</p>
+                        <p class="text-sm font-black tracking-tight">{{ card.currency }} {{ card.balance }}</p>
                     </div>
                 </div>
             </div>
