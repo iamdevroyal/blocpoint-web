@@ -68,7 +68,7 @@ const scrollToWallet = (index) => {
           <div 
             v-for="(wallet, idx) in wallets" 
             :key="wallet.code"
-            class="min-w-[85%] snap-center aspect-[1.8/1] rounded-[2.5rem] p-8 relative overflow-hidden transition-all duration-500 shadow-xl border"
+            class="min-w-[85%] snap-center aspect-[1.8/1] rounded-[2.5rem] p-4 relative overflow-hidden transition-all duration-500 shadow-xl border"
             :class="[
               wallet.color,
               activeIndex === idx ? 'scale-100 opacity-100' : 'scale-90 opacity-40'
@@ -96,7 +96,7 @@ const scrollToWallet = (index) => {
                 <h2 class="text-3xl font-semibold tracking-tighter transition-all duration-300" :class="{ 'blur-md select-none opacity-40': isBalanceHidden }">
                   {{ wallet.balance }}
                 </h2>
-                <div class="flex items-center gap-2 mt-2">
+                <div class="flex items-center gap-2 mt-0">
                   <span class="w-1 h-1 rounded-full bg-emerald-500"></span>
                   <p class="text-[10px] font-medium opacity-60">
                     Pending: {{ wallet.pending }}
