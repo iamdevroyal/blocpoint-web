@@ -165,7 +165,7 @@ const openArticle = (article) => {
                   <p class="text-4xl font-extrabold tracking-tighter transition-all duration-300"
                     :class="{ 'blur-md select-none opacity-40 scale-95': !showBalance }"
                   >
-                    {{ selectedCurrency.symbol }}{{ selectedCurrency.code === 'NGN' ? '54,200.00' : '0.00' }}
+                    {{ selectedCurrency.symbol }}{{ selectedCurrency.code === 'NGN' ? '1,540,200.00' : '0.00' }}
                   </p>
                 </div>
                 <button @click="showBalance = !showBalance" class="w-8 h-8 flex items-center justify-center bg-white/10 rounded-full hover:bg-white/20 transition-colors">
