@@ -20,20 +20,53 @@ const wallets = [
 
 const allTransactions = [
   // NGN
-  { id: 1, currency: 'NGN', type: 'Inbound', name: 'Michael Scott', amount: '+₦5,000.00', time: '10:45 AM', status: 'Completed', icon: '📥' },
-  { id: 2, currency: 'NGN', type: 'Outbound', name: 'Sarah Connor', amount: '-₦2,000.00', time: 'Yesterday', status: 'Completed', icon: '📤' },
+  { id: 1, currency: 'NGN', type: 'Inbound', name: 'Michael Scott', amount: '+₦5,000.00', time: '10:45 AM', date: 'Today', status: 'Completed', icon: '📥', category: 'Inflow', ref: 'TXN-9921021', method: 'Bank Transfer' },
+  { id: 2, currency: 'NGN', type: 'Outbound', name: 'Sarah Connor', amount: '-₦2,000.00', time: 'Yesterday', date: 'Yesterday', status: 'Completed', icon: '📤', category: 'Outflow', ref: 'TXN-9921022', method: 'Virtual Account' },
   // USD
-  { id: 3, currency: 'USD', type: 'Inbound', name: 'Global Client', amount: '+$500.00', time: '2:15 PM', status: 'Completed', icon: '📥' },
+  { id: 3, currency: 'USD', type: 'Inbound', name: 'Global Client', amount: '+$500.00', time: '2:15 PM', date: 'Today', status: 'Completed', icon: '📥', category: 'Inflow', ref: 'TXN-9921023', method: 'Client Payment' },
   // GHS
-  { id: 4, currency: 'GHS', type: 'Bill', name: 'MTN Data', amount: '-GH₵150.00', time: '3 days ago', status: 'Completed', icon: '📡' },
+  { id: 4, currency: 'GHS', type: 'Bill', name: 'MTN Data', amount: '-GH₵150.00', time: '3 days ago', date: 'Feb 24', status: 'Completed', icon: '📡', category: 'Bills', ref: 'TXN-9921024', method: 'Wallet Pay' },
   // KES
-  { id: 5, currency: 'KES', type: 'Transfer', name: 'Kamau Maina', amount: '+KSh12,000.00', time: 'Just now', status: 'Completed', icon: '📥' },
+  { id: 5, currency: 'KES', type: 'Transfer', name: 'Kamau Maina', amount: '+KSh12,000.00', time: 'Just now', date: 'Today', status: 'Completed', icon: '📥', category: 'Inflow', ref: 'TXN-9921025', method: 'Mobile Money' },
 ]
 
 const filteredTransactions = computed(() => {
   const currentCurrency = wallets[activeIndex.value].code
   return allTransactions.filter(tx => tx.currency === currentCurrency)
 })
+
+const selectedTx = ref(null)
+const showDetail = ref(false)
+const isDownloadingReceipt = ref(false)
+const receiptProgress = ref(0)
+
+const openDetail = (tx) => {
+  selectedTx.value = tx
+  showDetail.value = true
+  receiptProgress.value = 0
+}
+
+const handleReceiptDownload = () => {
+  isDownloadingReceipt.value = true
+  receiptProgress.value = 0
+  const interval = setInterval(() => {
+    receiptProgress.value += 10
+    if (receiptProgress.value >= 100) {
+      clearInterval(interval)
+      setTimeout(() => {
+        isDownloadingReceipt.value = false
+      }, 500)
+    }
+  }, 100)
+}
+
+const reportIssue = () => {
+  if (!selectedTx.value) return
+  router.push({
+    path: '/app/support',
+    query: { ref: selectedTx.value.ref, subject: `Issue with ${selectedTx.value.name}` }
+  })
+}
 
 const handleScroll = (event) => {
   const scrollPosition = event.target.scrollLeft
@@ -148,7 +181,8 @@ const scrollToWallet = (index) => {
           <div 
             v-for="(tx, idx) in filteredTransactions" 
             :key="tx.id"
-            class="flex items-center justify-between p-5 border-b border-slate-100 dark:border-white/5 last:border-0 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group"
+            @click="openDetail(tx)"
+            class="flex items-center justify-between p-5 border-b border-slate-100 dark:border-white/5 last:border-0 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group cursor-pointer active:scale-[0.99] transition-all"
           >
             <div class="flex items-center gap-4">
               <div class="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
@@ -174,6 +208,81 @@ const scrollToWallet = (index) => {
         </div>
       </div>
     </div>
+
+    <!-- Transaction Detail Drawer (Right Modal) -->
+    <Transition name="drawer-right">
+      <div v-if="showDetail" class="fixed inset-0 z-[150] flex justify-end">
+        <div class="absolute inset-0 bg-slate-950/40 backdrop-blur-sm" @click="showDetail = false"></div>
+        <div class="relative w-[85%] max-w-sm h-full bg-white dark:bg-slate-900 shadow-2xl flex flex-col border-l border-slate-200 dark:border-white/10 overflow-hidden animate-in slide-in-from-right duration-500">
+          <div class="p-8 space-y-8 flex-1 overflow-y-auto pt-12">
+            <!-- Header -->
+            <div class="flex items-start justify-between">
+              <div>
+                <h3 class="text-xl font-black text-slate-800 dark:text-white tracking-tight">Transaction Detail</h3>
+                <p class="text-[10px] font-black text-primary uppercase tracking-[0.2em] mt-1">{{ selectedTx.method }}</p>
+              </div>
+              <button @click="showDetail = false" class="w-10 h-10 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-400 border border-black/5 dark:border-white/5">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+              </button>
+            </div>
+
+            <!-- Amount Card -->
+            <div class="p-8 bg-slate-50 dark:bg-white/5 rounded-[2.5rem] border border-slate-100 dark:border-white/5 text-center space-y-1 relative overflow-hidden group">
+              <div class="absolute -right-10 -top-10 w-32 h-32 bg-primary/5 rounded-full blur-2xl"></div>
+              <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest relative z-10">Amount Transferred</p>
+              <p class="text-4xl font-black tracking-tighter relative z-10" :class="selectedTx.amount.startsWith('+') ? 'text-emerald-500' : 'text-slate-800 dark:text-white'">
+                {{ selectedTx.amount }}
+              </p>
+              <div class="inline-flex items-center gap-2 px-3 py-1 bg-emerald-500/10 rounded-full mt-4 relative z-10">
+                <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                <span class="text-[9px] font-black text-emerald-500 uppercase tracking-widest">Successful</span>
+              </div>
+              
+              <!-- Download Progress Overlay -->
+              <Transition name="fade">
+                <div v-if="isDownloadingReceipt" class="absolute inset-0 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm z-20 flex flex-col items-center justify-center p-6 space-y-3">
+                  <div class="w-full h-1 bg-slate-100 dark:bg-white/10 rounded-full overflow-hidden">
+                    <div class="h-full bg-primary transition-all duration-300" :style="{ width: receiptProgress + '%' }"></div>
+                  </div>
+                  <span class="text-[9px] font-black text-primary uppercase tracking-widest">Generating Receipt {{ receiptProgress }}%</span>
+                </div>
+              </Transition>
+            </div>
+
+            <!-- Details List -->
+            <div class="space-y-6 pt-4">
+              <div v-for="item in [
+                { label: 'Recipient/Source', value: selectedTx.name },
+                { label: 'Reference Number', value: selectedTx.ref },
+                { label: 'Date & Time', value: selectedTx.date + ' • ' + selectedTx.time },
+                { label: 'Category', value: selectedTx.category },
+                { label: 'Payment Method', value: selectedTx.method }
+              ]" :key="item.label" class="flex justify-between items-center group">
+                <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ item.label }}</span>
+                <span class="text-[11px] font-extrabold text-slate-700 dark:text-slate-200 group-hover:text-primary transition-colors">{{ item.value }}</span>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="pt-8 space-y-3">
+              <button 
+                @click="handleReceiptDownload"
+                :disabled="isDownloadingReceipt"
+                class="w-full h-14 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[10px] font-black rounded-2xl shadow-xl active:scale-95 transition-all uppercase tracking-[0.2em] disabled:opacity-50"
+              >
+                {{ isDownloadingReceipt ? 'Processing...' : 'Download Receipt' }}
+              </button>
+              <button 
+                @click="reportIssue"
+                class="w-full h-14 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 text-[10px] font-black rounded-2xl active:scale-95 transition-all uppercase tracking-[0.2em]"
+              >
+                Report Issue
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Transition>
   </AppShell>
 </template>
 
@@ -185,6 +294,17 @@ const scrollToWallet = (index) => {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+.drawer-right-enter-active, .drawer-right-leave-active {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.drawer-right-enter-from, .drawer-right-leave-to {
+  opacity: 0;
+  transform: translateX(100%);
+}
+
+.fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
 </style>
 
 
