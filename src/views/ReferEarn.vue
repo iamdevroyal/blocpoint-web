@@ -13,7 +13,7 @@ const stats = [
 
 const steps = [
   { title: 'Share Your Code', desc: 'Send your unique referral link to your friends and family.' },
-  { title: 'They Sign Up', desc: 'Your friends register on BlocPoint using your referral code.' },
+  { title: 'They Sign Up', desc: 'Your friends register on Blocpoint using your referral code.' },
   { title: 'You Earn Rewards', desc: 'Get ₦500 credited to your wallet for every successful verification.' }
 ]
 
@@ -24,7 +24,7 @@ const copyCode = () => {
 }
 
 const shareToWhatsApp = () => {
-  const text = `Join me on BlocPoint and earn rewards! Use my code: ${referralCode.value} to get started. ✨`
+  const text = `Join me on Blocpoint and earn rewards! Use my code: ${referralCode.value} to get started. ✨`
   window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank')
 }
 </script>
@@ -42,7 +42,7 @@ const shareToWhatsApp = () => {
           <div class="w-16 h-16 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center text-3xl shadow-inner mb-2">🎁</div>
           <h2 class="text-2xl font-bold text-white tracking-tight">Earn Rewards Together</h2>
           <p class="text-xs font-medium text-white/80 max-w-[280px] pb-1">
-            Get ₦500 for every friend who joins BlocPoint and completes their verification.
+            Get ₦500 for every friend who joins Blocpoint and completes their verification.
           </p>
         </div>
       </div>

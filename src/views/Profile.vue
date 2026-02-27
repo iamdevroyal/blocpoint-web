@@ -10,7 +10,7 @@ const profileData = ref({
   tier: 'Diamond Agent',
   joined: 'March 2026',
   accountNumber: '8827344109',
-  bankName: 'BlocPoint Microfinance Bank',
+  bankName: 'Blocpoint Microfinance Bank',
   address: 'No. 123, Luxury Estate, Lagos, Nigeria',
   gender: 'Male',
   dob: '12th Oct 1995'

@@ -214,7 +214,7 @@ const goBack = () => {
           <div class="flex justify-between items-start">
             <div class="space-y-1">
               <h3 class="text-xs font-black text-white/40 tracking-[0.2em]">Contactless POS</h3>
-              <p class="text-lg font-black text-white">BlocPoint SoftPOS</p>
+              <p class="text-lg font-black text-white">Blocpoint SoftPOS</p>
             </div>
             <div class="w-12 h-10 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-lg flex items-center justify-center border border-white/20">
               <div class="w-8 h-6 border border-black/10 rounded flex flex-col gap-1 p-1">

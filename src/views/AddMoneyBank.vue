@@ -9,7 +9,7 @@ const copied = ref(false)
 const accountDetails = {
   bank: 'Wema Bank',
   accountNumber: '7035148792',
-  accountName: 'Njoku Royal / BlocPoint'
+  accountName: 'Njoku Royal / Blocpoint'
 }
 
 const copyToClipboard = () => {

@@ -61,8 +61,8 @@ const prevStep = () => {
     <!-- Top Area: Logo & Theme Toggle -->
     <header class="w-full max-w-lg mx-auto flex items-center justify-between p-6 relative z-20">
       <div class="flex items-center gap-2">
-        <img v-if="uiStore.isDark" src="/blocpoint-white.png" alt="BlocPoint" class="h-6 auto block" />
-        <img v-else src="/blocpoint-white.png" alt="BlocPoint" class="h-6 auto block filter invert opacity-90" />
+        <img v-if="uiStore.isDark" src="/blocpoint-white.png" alt="Blocpoint" class="h-6 auto block" />
+        <img v-else src="/blocpoint-white.png" alt="Blocpoint" class="h-6 auto block filter invert opacity-90" />
       </div>
 
       <button 
@@ -95,7 +95,7 @@ const prevStep = () => {
               {{ step === 1 ? 'Start with Phone' : step === 2 ? 'Verify Code' : step === 3 ? 'Basic Info' : 'Security PIN' }}
             </h1>
             <p class="text-slate-500 dark:text-slate-400 font-medium text-xs mt-1">
-              {{ step === 1 ? 'Join the BlocPoint network' : step === 2 ? `Sent to ${form.phone}` : step === 3 ? 'Tell us about yourself' : 'Secure your wallet with a PIN' }}
+              {{ step === 1 ? 'Join the Blocpoint network' : step === 2 ? `Sent to ${form.phone}` : step === 3 ? 'Tell us about yourself' : 'Secure your wallet with a PIN' }}
             </p>
           </div>
 

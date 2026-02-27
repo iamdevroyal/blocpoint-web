@@ -78,8 +78,8 @@ onMounted(() => {
     <!-- Top Area: Logo & Theme Toggle -->
     <header class="w-full max-w-lg mx-auto flex items-center justify-between p-6 relative z-20">
       <div class="flex items-center gap-2">
-        <img v-if="uiStore.isDark" src="/blocpoint-white.png" alt="BlocPoint" class="h-6 auto block" />
-        <img v-else src="/blocpoint-white.png" alt="BlocPoint" class="h-6 auto block filter invert opacity-90" />
+        <img v-if="uiStore.isDark" src="/blocpoint-white.png" alt="Blocpoint" class="h-6 auto block" />
+        <img v-else src="/blocpoint-white.png" alt="Blocpoint" class="h-6 auto block filter invert opacity-90" />
       </div>
 
       <button 
@@ -168,7 +168,7 @@ onMounted(() => {
 
           <div class="mt-6 text-center">
             <p class="text-sm font-medium text-slate-500 dark:text-slate-400">
-              New to BlocPoint? 
+              New to Blocpoint? 
               <router-link to="/auth/register" class="text-primary font-bold hover:text-indigo-400 ml-1 underline underline-offset-4">Create Account</router-link>
             </p>
           </div>

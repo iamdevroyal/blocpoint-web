@@ -8,7 +8,7 @@ const depositMethods = [
   { 
     id: 'bank', 
     name: 'Bank Transfer', 
-    desc: 'Transfer to your BlocPoint account', 
+    desc: 'Transfer to your Blocpoint account', 
     icon: '🏦', 
     details: 'Wema Bank • 7035148792',
     color: 'bg-blue-500/10 text-blue-500'
@@ -80,7 +80,7 @@ const goBack = () => router.back()
             <h3 class="text-xs font-bold text-primary uppercase tracking-widest">Secure Payments</h3>
           </div>
           <p class="text-[11px] font-medium text-slate-600 dark:text-slate-300 leading-relaxed">
-            All transactions are encrypted and secured by BlocPoint’s multi-layer protection system. Your financial data is never shared with third parties.
+            All transactions are encrypted and secured by Blocpoint’s multi-layer protection system. Your financial data is never shared with third parties.
           </p>
         </div>
       </div>

@@ -35,7 +35,7 @@ const tabs = ['Virtual Card', 'My Cards']
 const virtualDesigns = [
   { 
     id: 1, 
-    name: 'BlocPoint Visa USD', 
+    name: 'Blocpoint Visa USD', 
     image: '/v-card-usd.png', 
     type: 'VISA', 
     currency: 'USD',
@@ -48,7 +48,7 @@ const virtualDesigns = [
   },
   { 
     id: 2, 
-    name: 'BlocPoint Mastercard EUR', 
+    name: 'Blocpoint Mastercard EUR', 
     image: '/v-card-euro.png', 
     type: 'MASTERCARD', 
     currency: 'EUR',
@@ -61,7 +61,7 @@ const virtualDesigns = [
   },
   { 
     id: 3, 
-    name: 'BlocPoint Verve GBP', 
+    name: 'Blocpoint Verve GBP', 
     image: '/v-card-pounds.png', 
     type: 'VERVE', 
     currency: 'GBP',
@@ -260,7 +260,7 @@ const confirmDelete = () => {
                 
                 <div class="flex justify-between items-start z-10">
                     <div class="flex flex-col gap-0.5">
-                        <span class="text-lg font-black italic tracking-tighter leading-none">BlocPoint</span>
+                        <span class="text-lg font-black italic tracking-tighter leading-none">Blocpoint</span>
                         <span class="text-[8px] font-black uppercase tracking-[0.2em] opacity-50">{{ card.name }}</span>
                     </div>
                     <div class="flex flex-col items-end gap-1">

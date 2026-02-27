@@ -59,8 +59,8 @@ const prevStep = () => {
     <!-- Top Area: Logo & Theme Toggle -->
     <header class="w-full max-w-lg mx-auto flex items-center justify-between p-6 relative z-20">
       <div class="flex items-center gap-2 cursor-pointer" @click="router.push('/auth/login')">
-        <img v-if="uiStore.isDark" src="/blocpoint-white.png" alt="BlocPoint" class="h-6 auto block" />
-        <img v-else src="/blocpoint-white.png" alt="BlocPoint" class="h-6 auto block filter invert opacity-90" />
+        <img v-if="uiStore.isDark" src="/blocpoint-white.png" alt="Blocpoint" class="h-6 auto block" />
+        <img v-else src="/blocpoint-white.png" alt="Blocpoint" class="h-6 auto block filter invert opacity-90" />
       </div>
 
       <button 

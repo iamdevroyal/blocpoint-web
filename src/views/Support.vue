@@ -61,7 +61,7 @@ const contactOptions = [
       </div>
 
       <div class="pt-8 text-center">
-        <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">BlocPoint Care • 2026</p>
+        <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Blocpoint Care • 2026</p>
       </div>
     </div>
   </AppShell>

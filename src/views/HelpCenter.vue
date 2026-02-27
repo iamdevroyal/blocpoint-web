@@ -10,8 +10,8 @@ const faqCategories = [
     name: 'General',
     icon: '🏢',
     questions: [
-      { q: 'What is BlocPoint?', a: 'BlocPoint is a modern fintech platform designed for seamless financial management, offering mobile payments, multi-currency wallets, and secure SoftPOS services.' },
-      { q: 'Is BlocPoint regulated?', a: 'Yes, we operate in full compliance with local financial regulations and partner with licensed financial institutions to ensure your funds are safe.' },
+      { q: 'What is Blocpoint?', a: 'Blocpoint is a modern fintech platform designed for seamless financial management, offering mobile payments, multi-currency wallets, and secure SoftPOS services.' },
+      { q: 'Is Blocpoint regulated?', a: 'Yes, we operate in full compliance with local financial regulations and partner with licensed financial institutions to ensure your funds are safe.' },
     ]
   },
   {
@@ -29,7 +29,7 @@ const faqCategories = [
     icon: '💸',
     questions: [
       { q: 'Are bank transfers instant?', a: 'Yes, transfers to Nigerian bank accounts via NIP are processed instantly, though occasional bank network delays may occur.' },
-      { q: 'What are the transaction fees?', a: 'Intra-app transfers within BlocPoint are free. External bank transfers carry a nominal fee, which is always displayed before you confirm.' },
+      { q: 'What are the transaction fees?', a: 'Intra-app transfers within Blocpoint are free. External bank transfers carry a nominal fee, which is always displayed before you confirm.' },
     ]
   },
   {

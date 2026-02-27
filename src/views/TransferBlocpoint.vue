@@ -105,7 +105,7 @@ const goBack = () => {
 </script>
 
 <template>
-  <AppShell title="Transfer to BlocPoint">
+  <AppShell title="Transfer to Blocpoint">
     <div class="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-24">
       <!-- Header -->
       <div class="flex items-center gap-4 px-2">
@@ -182,7 +182,7 @@ const goBack = () => {
           <div class="w-12 h-12 bg-primary text-white rounded-2xl flex items-center justify-center text-xl">👤</div>
           <div>
             <h4 class="text-sm font-extrabold text-slate-800 dark:text-white">Njoku Royal</h4>
-            <p class="text-[10px] font-bold text-primary uppercase tracking-widest">7035148792 • BlocPoint</p>
+            <p class="text-[10px] font-bold text-primary uppercase tracking-widest">7035148792 • Blocpoint</p>
           </div>
         </div>
 
@@ -266,7 +266,7 @@ const goBack = () => {
         message="Your transfer has been processed successfully. The recipient should see it in a few moments."
         :details="[
           { label: 'Recipient', value: 'Njoku Royal' },
-          { label: 'Bank', value: 'BlocPoint Account' },
+          { label: 'Bank', value: 'Blocpoint Account' },
           { label: 'Reference', value: '#' + Math.random().toString(36).substr(2, 9).toUpperCase() }
         ]"
         @action="router.push('/app/dashboard')"
