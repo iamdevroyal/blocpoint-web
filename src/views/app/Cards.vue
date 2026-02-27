@@ -17,6 +17,19 @@ const showDeleteConfirm = ref(false)
 const fundAmount = ref('')
 const isProcessing = ref(false)
 
+const exchangeRates = {
+  'USD': 1550,
+  'EUR': 1680,
+  'GBP': 1950
+}
+
+const convertedAmount = computed(() => {
+  if (!fundAmount.value || !selectedCard.value) return '0.00'
+  const rate = exchangeRates[selectedCard.value.currency] || 1
+  if (selectedCard.value.currency === 'NGN') return parseFloat(fundAmount.value).toFixed(2)
+  return (parseFloat(fundAmount.value) / rate).toFixed(2)
+})
+
 const tabs = ['Virtual Card', 'My Cards']
 
 const virtualDesigns = [
@@ -91,15 +104,15 @@ const myCards = ref([
   },
   { 
     id: 2, 
-    name: 'Mastercard Virtual', 
+    name: 'Mastercard EUR Virtual', 
     design: 'bg-gradient-to-br from-emerald-600 to-emerald-900', 
     type: 'MASTERCARD', 
     number: '5241 88** **** 4421', 
     fullNumber: '5241 8892 0012 4421',
     expiry: '12/27', 
     cvv: '102',
-    balance: '500,000.00',
-    currency: 'NGN',
+    balance: '450.00',
+    currency: 'EUR',
     isLocked: false,
     accent: 'bg-orange-500'
   }
@@ -137,7 +150,7 @@ const handleFund = () => {
     // Update local balance mock
     if (selectedCard.value) {
       const currentVal = parseFloat(selectedCard.value.balance.replace(/,/g, ''))
-      const addedVal = parseFloat(fundAmount.value)
+      const addedVal = parseFloat(convertedAmount.value)
       selectedCard.value.balance = (currentVal + addedVal).toLocaleString('en-US', { minimumFractionDigits: 2 })
     }
     fundAmount.value = ''
@@ -414,21 +427,37 @@ const confirmDelete = () => {
             <div class="relative w-full max-w-sm bg-white dark:bg-slate-900 rounded-[3rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
                 <div class="p-10 space-y-8 text-center">
                     <div class="space-y-4">
-                        <div class="w-20 h-20 bg-emerald-500/10 text-emerald-500 rounded-3xl flex items-center justify-center text-4xl mx-auto">💰</div>
+                        <div class="w-20 h-20 bg-emerald-500/10 text-emerald-500 rounded-3xl flex items-center justify-center text-4xl mx-auto shadow-inner border border-emerald-500/5">💰</div>
                         <div class="space-y-1">
                             <h3 class="text-xl font-black text-slate-800 dark:text-white tracking-tight">Fund Virtual Card</h3>
-                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Enter amount to transfer</p>
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest px-8 leading-relaxed">Top up your card using your Naira balance</p>
                         </div>
                     </div>
 
-                    <div class="relative">
-                        <span class="absolute left-6 top-1/2 -translate-y-1/2 text-lg font-black text-slate-400">₦</span>
-                        <input 
-                          type="number" 
-                          v-model="fundAmount"
-                          placeholder="0.00"
-                          class="w-full h-20 bg-slate-50 dark:bg-white/5 rounded-[1.5rem] pl-12 pr-6 text-2xl font-black text-slate-800 dark:text-white focus:ring-4 focus:ring-emerald-500/20 border-none transition-all placeholder:text-slate-300"
-                        >
+                    <!-- Exchange Rate Banner -->
+                    <div v-if="selectedCard?.currency !== 'NGN'" class="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5 flex items-center justify-between">
+                        <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Rate</span>
+                        <span class="text-[11px] font-black text-slate-800 dark:text-white uppercase tracking-tight">1 {{ selectedCard?.currency }} = ₦{{ exchangeRates[selectedCard?.currency]?.toLocaleString() }}</span>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div class="relative">
+                            <span class="absolute left-6 top-1/2 -translate-y-1/2 text-lg font-black text-slate-400">₦</span>
+                            <input 
+                              type="number" 
+                              v-model="fundAmount"
+                              placeholder="Amount in Naira"
+                              class="w-full h-20 bg-slate-50 dark:bg-white/5 rounded-[1.5rem] pl-12 pr-6 text-2xl font-black text-slate-800 dark:text-white focus:ring-4 focus:ring-emerald-500/20 border-none transition-all placeholder:text-[10px] placeholder:font-black placeholder:uppercase placeholder:tracking-widest placeholder:text-slate-300"
+                            >
+                        </div>
+
+                        <!-- Conversion Display -->
+                        <div v-if="parseFloat(fundAmount) > 0" class="animate-in slide-in-from-top-2 duration-300">
+                            <div class="p-4 bg-emerald-500/5 border border-emerald-500/10 rounded-2xl flex items-center justify-between">
+                                <span class="text-[9px] font-black text-emerald-500 uppercase tracking-widest tracking-widest">You Receive</span>
+                                <span class="text-lg font-black text-emerald-600 dark:text-emerald-400 tracking-tight">{{ selectedCard?.currency }} {{ convertedAmount }}</span>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="flex flex-col gap-3">
