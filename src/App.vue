@@ -10,9 +10,9 @@ import IOSInstallPrompt from './components/ui/IOSInstallPrompt.vue'
 const ui = useUIStore()
 
 const handleNetworkChange = () => {
-  console.log('📡 Browser network event detected...')
+  //console.log('📡 Browser network event detected...')
   ui.isOffline = !navigator.onLine
-  console.log('🌐 Network Status Updated:', ui.isOffline ? 'OFFLINE' : 'ONLINE')
+  //console.log('🌐 Network Status Updated:', ui.isOffline ? 'OFFLINE' : 'ONLINE')
 }
 
 onMounted(() => {

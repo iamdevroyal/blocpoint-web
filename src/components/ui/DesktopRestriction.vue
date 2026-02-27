@@ -61,9 +61,9 @@ onUnmounted(() => {
         </div>
 
         <div class="space-y-4">
-          <h2 class="text-3xl font-black text-white tracking-tight leading-none uppercase">Mobile Experience Only</h2>
+          <h2 class="text-3xl font-black text-white tracking-tight leading-none uppercase">Mobile Devices Only</h2>
           <p class="text-[12px] font-bold text-slate-400 uppercase tracking-[0.2em] leading-loose max-w-[320px] mx-auto">
-            BlocPoint is optimized for handheld performance and security. Please access this application using a mobile device or a small screen browser.
+            Blocpoint is optimized for mobile devices. Please access this application using a mobile device or a small screen browser.
           </p>
         </div>
 
@@ -72,7 +72,7 @@ onUnmounted(() => {
             <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-xl">📱</div>
             <div>
               <p class="text-[10px] font-black text-white uppercase tracking-widest">How to access?</p>
-              <p class="text-[9px] font-medium text-slate-500 uppercase tracking-tighter">Scan QR code or open workspace on mobile</p>
+              <p class="text-[9px] font-medium text-slate-500 uppercase tracking-tighter">Kindly open the application on mobile</p>
             </div>
           </div>
         </div>

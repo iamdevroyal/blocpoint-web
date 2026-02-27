@@ -8,11 +8,11 @@ export default defineConfig({
     vue(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'robots.txt', 'icons/*'],
+      includeAssets: ['blocpoint-fav-white.png', 'robots.txt', 'icons/*'],
       manifest: {
-        name: 'BlocPoint',
-        short_name: 'BlocPoint',
-        description: 'BlocPoint user app – your financial liquidity hub.',
+        name: 'Blocpoint',
+        short_name: 'Blocpoint',
+        description: 'Blocpoint user app – your financial liquidity hub.',
         theme_color: '#020617',
         background_color: '#020617',
         display: 'standalone',
@@ -49,14 +49,14 @@ export default defineConfig({
             sizes: '1280x720',
             type: 'image/png',
             form_factor: 'wide',
-            label: 'BlocPoint Dashboard'
+            label: 'Blocpoint Dashboard'
           },
           {
             src: '/blocpoint.png',
             sizes: '720x1280',
             type: 'image/png',
             form_factor: 'narrow',
-            label: 'BlocPoint Mobile'
+            label: 'Blocpoint Mobile'
           }
         ]
       },

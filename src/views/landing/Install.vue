@@ -43,7 +43,7 @@ const handleInstallClick = async () => {
   }
 
   if (!deferredPrompt.value) {
-    uiStore.showToast('Install feature not available on this browser or already installed.', 'warning')
+    uiStore.showToast('Install feature not available on this device or already installed.', 'warning')
     return
   }
 
@@ -136,7 +136,7 @@ const handleInstallClick = async () => {
     <!-- Footer -->
     <footer class="w-full text-center relative z-10 pt-4">
       <div class="text-[11px] font-medium text-slate-400 dark:text-slate-500 transition-colors">
-        Powered by BlocPoint Inc. Infrastructure
+        Powered by Blocpoint Inc.
       </div>
     </footer>
 

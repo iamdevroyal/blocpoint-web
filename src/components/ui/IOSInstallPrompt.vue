@@ -47,11 +47,11 @@ onMounted(() => {
           <div class="flex items-start justify-between">
             <div class="flex items-center gap-4">
               <div class="w-12 h-12 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 flex items-center justify-center p-2.5 shadow-sm">
-                <img src="/blocpoint-fav.png" alt="BlocPoint" class="w-full h-full object-contain" />
+                <img src="/blocpoint-fav.png" alt="Blocpoint" class="w-full h-full object-contain" />
               </div>
               <div>
-                <h3 class="text-sm font-black text-slate-800 dark:text-white tracking-tight">Install BlocPoint</h3>
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Add to your Home Screen</p>
+                <h3 class="text-sm font-black text-slate-800 dark:text-white tracking-tight">Install Blocpoint</h3>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Add Blocpoint to device apps</p>
               </div>
             </div>
             <button @click="dismiss" class="w-8 h-8 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors">
@@ -61,7 +61,7 @@ onMounted(() => {
 
           <div class="space-y-4">
             <p class="text-[11px] font-medium text-slate-500 dark:text-slate-400 leading-relaxed">
-              Install BlocPoint on your iPhone for a faster, premium experience with native-style features.
+              Install Blocpoint on your iPhone.
             </p>
 
             <div class="bg-slate-50 dark:bg-white/5 rounded-2xl p-4 space-y-3">
