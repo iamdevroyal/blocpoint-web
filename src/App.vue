@@ -17,18 +17,14 @@ const handleNetworkChange = () => {
 
 onMounted(() => {
   ui.initTheme()
-  // Ensure we check status on boot
-  handleNetworkChange()
-  
-  // Debug reference
-  window.uiStore = ui
-  
-  window.addEventListener('online', handleNetworkChange)
+  // Set correct offline state immediately on boot
+  ui.isOffline = !navigator.onLine
+  window.addEventListener('online',  handleNetworkChange)
   window.addEventListener('offline', handleNetworkChange)
 })
 
 onUnmounted(() => {
-  window.removeEventListener('online', handleNetworkChange)
+  window.removeEventListener('online',  handleNetworkChange)
   window.removeEventListener('offline', handleNetworkChange)
 })
 </script>

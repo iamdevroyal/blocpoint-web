@@ -3,21 +3,23 @@ import { ref, onMounted } from 'vue'
 
 const show = ref(false)
 
+/**
+ * Detect iOS Safari using userAgent (navigator.platform is deprecated iOS 15+).
+ * Also handles iPad on iOS 13+ which reports as 'MacIntel' in navigator.platform.
+ */
 const isIOS = () => {
-  return [
-    'iPad Simulator',
-    'iPhone Simulator',
-    'iPod Simulator',
-    'iPad',
-    'iPhone',
-    'iPod'
-  ].includes(navigator.platform)
-  // iPad on iOS 13 detection
-  || (navigator.userAgent.includes("Mac") && "ontouchend" in document)
+  return /iphone|ipad|ipod/i.test(navigator.userAgent)
+    // iPad on iOS 13+ in desktop mode reports MacIntel but has ontouchend
+    || (navigator.userAgent.includes('Mac') && 'ontouchend' in document)
 }
 
+/**
+ * Detect if already running as installed PWA (standalone mode).
+ * Checks both navigator.standalone (Safari) and display-mode media query.
+ */
 const isStandalone = () => {
-  return ('standalone' in window.navigator) && window.navigator.standalone
+  return !!(('standalone' in window.navigator) && window.navigator.standalone)
+    || window.matchMedia('(display-mode: standalone)').matches
 }
 
 const dismiss = () => {

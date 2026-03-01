@@ -22,5 +22,19 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: 'Outfit', Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+}
+
+/* ── iOS Safe Area Insets (iOSpwa.md requirement #8) ──────────────────────────
+   viewport-fit=cover lets the app fill the full iPhone screen including the
+   notch and home indicator. These insets push content back into the safe zone.
+   env() values are zero on non-iOS devices — no side effects elsewhere.       */
+#app {
+  padding-top:    env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  /* Do NOT add left/right padding globally — it breaks full-bleed cards.
+     Use it on a per-component basis for items that need it (e.g. bottom nav). */
+
+  /* Ensure the app always fills the full device height */
+  min-height: 100dvh;
 }

@@ -2,17 +2,21 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUIStore } from '../stores/ui'
+import { useAuthStore } from '../stores/auth'
 
-const router = useRouter()
-const uiStore = useUIStore()
-const step = ref(1)
+const router    = useRouter()
+const uiStore   = useUIStore()
+const authStore = useAuthStore()
+
+const step      = ref(1)
 const isLoading = ref(false)
+const error     = ref(null)    // per-step error message shown inline
 
 const form = ref({
-  phone: '',
-  otp: '',
-  newPin: '',
-  confirmPin: ''
+  phone:      '',
+  otp:        '',
+  newPin:     '',
+  confirmPin: '',
 })
 
 const filterNumeric = (key) => {
@@ -21,31 +25,50 @@ const filterNumeric = (key) => {
 
 const buttonText = computed(() => {
   if (isLoading.value) return 'Processing...'
-  switch (step.value) {
-    case 1: return 'Verify Phone Number'
-    case 2: return 'Verify OTP'
-    case 3: return 'Reset Secure PIN'
-    default: return 'Continue'
-  }
+  return { 1: 'Send Code', 2: 'Verify Code', 3: 'Reset PIN' }[step.value] ?? 'Continue'
 })
 
-const handleForgotPin = async () => {
+/**
+ * Step router — calls the right auth store action per step.
+ */
+const handleNext = async () => {
+  error.value    = null
   isLoading.value = true
-  
-  // Simulate API calls
-  setTimeout(() => {
-    isLoading.value = false
-    if (step.value < 3) {
-      step.value++
+
+  try {
+    if (step.value === 1) {
+      // Step 1: send OTP for PIN reset
+      await authStore.requestForgotPinOtp(form.value.phone)
+      step.value = 2
+
+    } else if (step.value === 2) {
+      // Step 2: verify OTP code — store otp_token in authStore.otpToken
+      await authStore.verifyForgotPinOtp(form.value.phone, form.value.otp)
+      step.value = 3
+
     } else {
-      // Success - redirect to login
-      router.push('/auth/login')
+      // Step 3: validate PINs match before hitting the API
+      if (form.value.newPin !== form.value.confirmPin) {
+        error.value = 'PINs do not match. Please re-enter.'
+        return
+      }
+      await authStore.resetPin(form.value.phone, form.value.newPin)
+      // Success — redirect to login with a query param so Login.vue can show a toast
+      router.push({ path: '/auth/login', query: { reset: '1' } })
     }
-  }, 1000)
+  } catch (err) {
+    // Extract the most useful error message from the axios error
+    const resp = err?.response?.data
+    error.value = resp?.errors
+      ? Object.values(resp.errors).flat().join(' ')
+      : (resp?.message ?? 'Something went wrong. Please try again.')
+  } finally {
+    isLoading.value = false
+  }
 }
 
 const prevStep = () => {
-  if (step.value > 1) step.value--
+  if (step.value > 1) { step.value--; error.value = null }
 }
 </script>
 
@@ -97,7 +120,7 @@ const prevStep = () => {
             </p>
           </div>
 
-          <form @submit.prevent="handleForgotPin" class="space-y-6">
+          <form @submit.prevent="handleNext" class="space-y-6">
             <Transition name="fade" mode="out-in">
               <div :key="step" class="space-y-6">
                 <!-- Step 1: Identifier -->
@@ -163,6 +186,13 @@ const prevStep = () => {
                     />
                   </div>
                 </div>
+              </div>
+            </Transition>
+
+            <!-- Inline error -->
+            <Transition name="fade">
+              <div v-if="error" class="py-3 px-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-[11px] font-bold text-red-500 text-center animate-in fade-in duration-300">
+                {{ error }}
               </div>
             </Transition>
 

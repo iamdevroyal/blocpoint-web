@@ -8,7 +8,7 @@ export default defineConfig({
     vue(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['blocpoint-fav-white.png', 'robots.txt', 'icons/*'],
+      includeAssets: ['blocpoint-fav-white.png', 'blocpoint-fav.png', 'robots.txt', 'icons/**/*'],
       manifest: {
         name: 'Blocpoint',
         short_name: 'Blocpoint',
@@ -61,10 +61,14 @@ export default defineConfig({
         ]
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        // SPA fallback — any uncached navigation loads the app shell (index.html)
+        navigateFallback: 'index.html',
+        // Don't intercept API requests with the fallback
+        navigateFallbackDenylist: [/^\/api\//, /^\/storage\//],
         runtimeCaching: [
           {
-            // Placeholder for future API caching; safe no-op for now.
+            // Network-first for all API calls with 5s timeout before cache
             urlPattern: ({ url }) => url.pathname.startsWith('/api/v1/'),
             handler: 'NetworkFirst',
             options: {

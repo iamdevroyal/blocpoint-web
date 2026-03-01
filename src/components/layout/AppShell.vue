@@ -2,6 +2,8 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUIStore } from '../../stores/ui'
+import { useAuthStore } from '../../stores/auth'
+import { useDashboardStore } from '../../stores/dashboard'
 
 const props = defineProps({
   title: {
@@ -10,54 +12,91 @@ const props = defineProps({
   },
 })
 
-const route = useRoute()
+const route  = useRoute()
 const router = useRouter()
-const ui = useUIStore()
+const ui     = useUIStore()
+const auth   = useAuthStore()
+const dash   = useDashboardStore()
 
-const isDark = computed(() => ui.isDark)
-const showNotifications = ref(false)
-const showUserDropdown = ref(false)
-const notificationRef = ref(null)
-const userDropdownRef = ref(null)
+const isDark              = computed(() => ui.isDark)
+const showNotifications   = ref(false)
+const showUserDropdown    = ref(false)
+const notificationRef     = ref(null)
+const userDropdownRef     = ref(null)
+
+// ─── Agent display helpers ────────────────────────────────────────────────────
+
+/** Full display name, falls back to phone if profile not yet loaded. */
+const displayName = computed(() =>
+  auth.user?.full_name
+  ?? (auth.user?.first_name ? `${auth.user.first_name} ${auth.user.last_name ?? ''}`.trim() : null)
+  ?? auth.user?.phone
+  ?? 'Agent'
+)
+
+/** Tier level label */
+const tierLabel = computed(() =>
+  auth.user?.tier?.level != null ? `Level ${auth.user.tier.level}` : 'Level —'
+)
+
+/** Avatar URL via ui-avatars from the agent's name */
+const avatarUrl = computed(() => {
+  const name = encodeURIComponent(displayName.value)
+  return `https://ui-avatars.com/api/?name=${name}&background=6366f1&color=fff&size=80`
+})
+
+// ─── Notifications ────────────────────────────────────────────────────────────
+
+const unreadCount   = computed(() => dash.unreadCount)
+const notifications = computed(() => dash.notifications)
 
 const navItems = [
-  { name: 'Home', path: '/app/dashboard', icon: '🏠' },
-  { name: 'Wallet', path: '/app/wallet', icon: '👛' },
-  { name: 'SoftPOS', path: '/app/softpos', icon: '📠' },
-  { name: 'Tax', path: '/app/tax', icon: '📊' },
-  { name: 'Assets', path: '/app/assets', icon: '🛍️' },
-]
-
-const notifications = [
-  { id: 1, title: 'Transfer Received', message: 'You received ₦5,000 from Michael.', time: '2m ago', icon: '💰' },
-  { id: 2, title: 'Security Alert', message: 'New login detected from a Chrome on Windows.', time: '1h ago', icon: '🔒' },
+  { name: 'Home',    path: '/app/dashboard', icon: '🏠' },
+  { name: 'Wallet',  path: '/app/wallet',    icon: '�' },
+  { name: 'SoftPOS', path: '/app/softpos',   icon: '�' },
+  { name: 'Tax',     path: '/app/tax',       icon: '�' },
+  { name: 'Assets',  path: '/app/assets',    icon: '�️' },
 ]
 
 const isActive = (path) => route.path.startsWith(path)
 const go = (path) => {
   router.push(path)
   showNotifications.value = false
-  showUserDropdown.value = false
+  showUserDropdown.value  = false
 }
 
 const toggleNotifications = () => {
   showNotifications.value = !showNotifications.value
-  showUserDropdown.value = false
+  showUserDropdown.value  = false
 }
 
 const toggleUserDropdown = () => {
-  showUserDropdown.value = !showUserDropdown.value
+  showUserDropdown.value  = !showUserDropdown.value
   showNotifications.value = false
 }
 
+/** Mark a notification as read when opening the panel. */
+const onOpenNotifications = async () => {
+  toggleNotifications()
+  // Mark unread ones as read after a short delay (UX: let the user see them first)
+  if (showNotifications.value) {
+    setTimeout(async () => {
+      const unread = dash.notifications.filter((n) => !n.is_read)
+      await Promise.all(unread.map((n) => dash.markNotificationRead(n.id)))
+    }, 1500)
+  }
+}
+
+/** Logout: call auth store (handles POST /auth/logout + state clear) then redirect. */
 const handleLogout = () => {
   ui.showConfirm({
-    title: 'Sign Out',
-    message: 'Are you sure you want to end your session?',
+    title:       'Sign Out',
+    message:     'Are you sure you want to end your session?',
     confirmText: 'Logout',
-    onConfirm: () => {
+    onConfirm: async () => {
+      await auth.logout()
       router.push('/auth/login')
-    }
+    },
   })
 }
 
@@ -70,13 +109,8 @@ const handleClickOutside = (event) => {
   }
 }
 
-onMounted(() => {
-  document.addEventListener('click', handleClickOutside)
-})
-
-onUnmounted(() => {
-  document.removeEventListener('click', handleClickOutside)
-})
+onMounted(() => document.addEventListener('click', handleClickOutside))
+onUnmounted(() => document.removeEventListener('click', handleClickOutside))
 </script>
 
 <template>
@@ -114,9 +148,7 @@ onUnmounted(() => {
     <main class="flex-1 flex flex-col bg-gradient-to-br from-slate-950 via-slate-950 to-slate-900">
       <!-- Desktop header -->
       <header class="sticky top-0 z-20 px-6 py-4 border-b border-white/10 backdrop-blur-xl bg-slate-950/60 flex items-center justify-between">
-        <h1 class="text-lg font-semibold text-slate-100">
-          {{ title }}
-        </h1>
+        <h1 class="text-lg font-semibold text-slate-100">{{ title }}</h1>
         <slot name="header-actions" />
       </header>
 
@@ -133,14 +165,15 @@ onUnmounted(() => {
     <header
       class="fixed top-4 inset-x-4 z-50 rounded-2xl border border-slate-200 dark:border-white/10 bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl px-4 py-3 flex items-center justify-between shadow-lg shadow-slate-200/50 dark:shadow-none transition-all"
     >
+      <!-- User info / dropdown trigger -->
       <div class="flex items-center gap-3 cursor-pointer active:scale-95 transition-transform relative" ref="userDropdownRef" @click="toggleUserDropdown">
         <div class="w-10 h-10 rounded-full border-2 border-primary/20 p-0.5 overflow-hidden ring-2 ring-slate-100 dark:ring-white/5">
-          <img src="https://ui-avatars.com/api/?name=Njoku+Nnaemeka+Royal&background=6366f1&color=fff" alt="Profile" class="w-full h-full rounded-full object-cover" />
+          <img :src="avatarUrl" :alt="displayName" class="w-full h-full rounded-full object-cover" />
         </div>
         <div>
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Level 2</p>
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{{ tierLabel }}</p>
           <div class="flex items-center gap-1">
-            <p class="text-[10px] font-extrabold text-slate-800 dark:text-slate-200">Njoku Royal</p>
+            <p class="text-[10px] font-extrabold text-slate-800 dark:text-slate-200">{{ displayName }}</p>
             <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" class="opacity-50 transition-transform" :class="{ 'rotate-180': showUserDropdown }"><path d="m6 9 6 6 6-6"/></svg>
           </div>
         </div>
@@ -162,22 +195,34 @@ onUnmounted(() => {
         </Transition>
       </div>
 
+      <!-- Header actions -->
       <div class="flex items-center gap-2" ref="notificationRef">
-        <button 
+        <!-- Theme toggle -->
+        <button
           @click="ui.toggleTheme()"
           class="w-9 h-9 rounded-full flex items-center justify-center text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-all active:scale-90"
         >
           <svg v-if="isDark" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
           <svg v-else xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
         </button>
+
         <!-- Support -->
         <button @click="go('/app/support')" class="w-9 h-9 rounded-full flex items-center justify-center text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-all active:scale-90">
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3z"/><path d="M3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
         </button>
+
         <!-- Notifications -->
-        <button @click="toggleNotifications" class="w-9 h-9 rounded-full flex items-center justify-center text-slate-500 dark:text-slate-400 relative hover:bg-slate-100 dark:hover:bg-white/5 transition-all active:scale-90" :class="{ 'bg-primary/10 text-primary': showNotifications }">
+        <button
+          @click="onOpenNotifications"
+          class="w-9 h-9 rounded-full flex items-center justify-center text-slate-500 dark:text-slate-400 relative hover:bg-slate-100 dark:hover:bg-white/5 transition-all active:scale-90"
+          :class="{ 'bg-primary/10 text-primary': showNotifications }"
+        >
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
-          <span class="absolute top-2 right-2 w-1.5 h-1.5 bg-rose-500 rounded-full border border-white dark:border-slate-900"></span>
+          <!-- Unread badge -->
+          <span
+            v-if="unreadCount > 0"
+            class="absolute top-1.5 right-1.5 min-w-[14px] h-[14px] px-0.5 bg-rose-500 rounded-full border-2 border-white dark:border-slate-900 flex items-center justify-center text-[8px] font-black text-white leading-none"
+          >{{ unreadCount > 9 ? '9+' : unreadCount }}</span>
         </button>
       </div>
 
@@ -186,22 +231,37 @@ onUnmounted(() => {
         <div v-if="showNotifications" class="absolute top-[4.5rem] inset-x-4 z-[60] bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl border border-slate-200 dark:border-white/10 rounded-[2rem] shadow-2xl p-5 origin-top">
           <div class="flex items-center justify-between mb-4 px-2">
             <h3 class="text-sm font-black uppercase tracking-tighter">Notifications</h3>
-            <button class="text-[10px] font-bold text-primary uppercase tracking-wider">Mark all as read</button>
+            <span v-if="dash.isLoadingNotifs" class="text-[10px] text-slate-400">Loading…</span>
           </div>
-          <div class="space-y-2">
-            <div v-for="notif in notifications" :key="notif.id" class="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 flex gap-4 transition-all active:scale-[0.98]">
+
+          <!-- Empty state -->
+          <div v-if="!dash.isLoadingNotifs && notifications.length === 0" class="py-6 text-center text-slate-400 text-sm font-medium">
+            You're all caught up ✅
+          </div>
+
+          <!-- Notification list -->
+          <div v-else class="space-y-2">
+            <div
+              v-for="notif in notifications"
+              :key="notif.id"
+              class="p-4 rounded-2xl border flex gap-4 transition-all active:scale-[0.98]"
+              :class="notif.is_read
+                ? 'bg-slate-50 dark:bg-white/5 border-slate-100 dark:border-white/5'
+                : 'bg-primary/5 border-primary/20'"
+            >
               <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-xl shrink-0">
-                {{ notif.icon }}
+                {{ notif.type === 'security' ? '🔒' : notif.type === 'transaction' ? '💰' : '🔔' }}
               </div>
-              <div class="space-y-0.5">
-                <div class="flex items-center justify-between">
-                  <h4 class="text-xs font-extrabold">{{ notif.title }}</h4>
-                  <span class="text-[9px] font-medium text-slate-400">{{ notif.time }}</span>
+              <div class="space-y-0.5 flex-1 min-w-0">
+                <div class="flex items-start justify-between gap-2">
+                  <h4 class="text-xs font-extrabold truncate">{{ notif.subject }}</h4>
+                  <span class="text-[9px] font-medium text-slate-400 shrink-0">{{ notif.sent_at ? new Date(notif.sent_at).toLocaleDateString() : '' }}</span>
                 </div>
-                <p class="text-[11px] font-medium text-slate-500 dark:text-slate-400 leading-tight">{{ notif.message }}</p>
+                <p class="text-[11px] font-medium text-slate-500 dark:text-slate-400 leading-tight line-clamp-2">{{ notif.body }}</p>
               </div>
             </div>
           </div>
+
           <button @click="showNotifications = false" class="w-full mt-4 py-3 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest border-t border-slate-100 dark:border-white/5">Close</button>
         </div>
       </Transition>

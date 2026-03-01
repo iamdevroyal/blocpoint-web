@@ -2,20 +2,27 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUIStore } from '../stores/ui'
+import { useAuthStore } from '../stores/auth'
+import { normalizePhone } from '../utils/phone'
 
-const router = useRouter()
-const uiStore = useUIStore()
-const step = ref(1)
+const router   = useRouter()
+const uiStore  = useUIStore()
+const authStore = useAuthStore()
+
+const step      = ref(1)
 const isLoading = ref(false)
 
 const form = ref({
-  phone: '',
-  otp: '',
-  firstName: '',
-  lastName: '',
-  pin: '',
-  pinConfirm: ''
+  phone:      '',
+  otp:        '',
+  firstName:  '',
+  lastName:   '',
+  pin:        '',
+  pinConfirm: '',
 })
+
+/** Validation/API errors from the backend, keyed by field or 'general'. */
+const errors = ref({})
 
 const filterNumeric = (key) => {
   form.value[key] = form.value[key].replace(/\D/g, '')
@@ -24,31 +31,139 @@ const filterNumeric = (key) => {
 const buttonText = computed(() => {
   if (isLoading.value) return 'Processing...'
   switch (step.value) {
-    case 1: return 'Send Secure OTP'
-    case 2: return 'Verify Identity'
-    case 3: return 'Continue Profile'
-    case 4: return 'Complete Registration'
-    default: return 'Next Step'
+    case 1: return 'Send OTP'
+    case 2: return 'Verify OTP'
+    case 3: return 'Continue'
+    case 4: return 'Create Account'
+    default: return 'Next'
   }
 })
 
-const handleRegister = async () => {
+// ─── Step Handlers ────────────────────────────────────────────────────────────
+
+/**
+ * Step 1 — Request OTP.
+ * Calls POST /auth/request-otp with the normalized phone number.
+ */
+async function handleStep1() {
+  errors.value = {}
   isLoading.value = true
-  
-  // Simulate API calls
-  setTimeout(() => {
+  try {
+    await authStore.requestOtp(normalizePhone(form.value.phone))
+    step.value++
+  } catch (err) {
+    errors.value = extractErrors(err)
+  } finally {
     isLoading.value = false
-    if (step.value < 4) {
-      step.value++
-    } else {
-      router.push('/app/dashboard')
-    }
-  }, 1000)
+  }
+}
+
+/**
+ * Step 2 — Verify OTP.
+ * Calls POST /auth/verify-otp; stores the returned otp_token in the auth store
+ * so it can be passed to the final register call.
+ */
+async function handleStep2() {
+  errors.value = {}
+  isLoading.value = true
+  try {
+    await authStore.verifyOtp(normalizePhone(form.value.phone), form.value.otp)
+    step.value++
+  } catch (err) {
+    errors.value = extractErrors(err)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+/**
+ * Step 3 — Profile info.
+ * No API call — just validate and advance.
+ */
+function handleStep3() {
+  errors.value = {}
+  if (!form.value.firstName.trim() || !form.value.lastName.trim()) {
+    errors.value = { general: 'Please enter your first and last name.' }
+    return
+  }
+  step.value++
+}
+
+/**
+ * Step 4 — Final registration.
+ * Calls POST /auth/register with the full payload.
+ * On success the auth store persists the token + user and we navigate home.
+ */
+async function handleStep4() {
+  errors.value = {}
+  if (form.value.pin !== form.value.pinConfirm) {
+    errors.value = { pin: 'PINs do not match.' }
+    return
+  }
+  isLoading.value = true
+  try {
+    await authStore.register({
+      phone:      normalizePhone(form.value.phone),
+      otp:        form.value.otp,
+      firstName:  form.value.firstName,
+      lastName:   form.value.lastName,
+      pin:        form.value.pin,
+      pinConfirm: form.value.pinConfirm,
+    })
+    router.push('/app/dashboard')
+  } catch (err) {
+    errors.value = extractErrors(err)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+/** Dispatch to the correct step handler. */
+const handleRegister = () => {
+  switch (step.value) {
+    case 1: return handleStep1()
+    case 2: return handleStep2()
+    case 3: return handleStep3()
+    case 4: return handleStep4()
+  }
 }
 
 const prevStep = () => {
-  if (step.value > 1) step.value--
+  if (step.value > 1) {
+    step.value--
+    errors.value = {}
+  }
 }
+
+// ─── Error Helpers ────────────────────────────────────────────────────────────
+
+/**
+ * Extract displayable errors from an AxiosError.
+ * Backend returns either { errors: { field: ['msg'] } } (422)
+ * or { message: 'string' } for other errors.
+ *
+ * @param {import('axios').AxiosError} err
+ * @returns {object}
+ */
+function extractErrors(err) {
+  const res = err?.response?.data
+  if (!res) return { general: 'An unexpected error occurred. Please try again.' }
+  if (res.errors) {
+    // Flatten first message per field
+    const flat = {}
+    for (const [field, messages] of Object.entries(res.errors)) {
+      flat[field] = Array.isArray(messages) ? messages[0] : messages
+    }
+    return flat
+  }
+  return { general: res.message || 'An unexpected error occurred.' }
+}
+
+/** Returns the first error string from the errors map for display. */
+const firstError = computed(() => {
+  const vals = Object.values(errors.value)
+  return vals.length ? vals[0] : null
+})
 </script>
 
 <template>
@@ -95,9 +210,19 @@ const prevStep = () => {
               {{ step === 1 ? 'Start with Phone' : step === 2 ? 'Verify Code' : step === 3 ? 'Basic Info' : 'Security PIN' }}
             </h1>
             <p class="text-slate-500 dark:text-slate-400 font-medium text-xs mt-1">
-              {{ step === 1 ? 'Join the Blocpoint network' : step === 2 ? `Sent to ${form.phone}` : step === 3 ? 'Tell us about yourself' : 'Secure your wallet with a PIN' }}
+              {{ step === 1 ? 'Register with phone number' : step === 2 ? `Code sent to ${form.phone}` : step === 3 ? 'Tell us about yourself' : 'Secure your account with a PIN' }}
             </p>
           </div>
+
+          <!-- Error Banner -->
+          <Transition name="fade">
+            <div 
+              v-if="firstError" 
+              class="mb-4 px-4 py-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/40 rounded-2xl text-red-600 dark:text-red-400 text-xs font-semibold"
+            >
+              {{ firstError }}
+            </div>
+          </Transition>
 
           <form @submit.prevent="handleRegister" class="space-y-5">
             <Transition name="fade" mode="out-in">
@@ -110,11 +235,13 @@ const prevStep = () => {
                     type="tel" 
                     inputmode="numeric"
                     pattern="[0-9]*"
-                    placeholder="+234..."
+                    placeholder="08012345678"
                     class="w-full px-5 py-3.5 bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all dark:placeholder:text-slate-600"
+                    :class="{ 'border-red-400 dark:border-red-600': errors.phone }"
                     @input="filterNumeric('phone')"
                     required
                   />
+                  <p v-if="errors.phone" class="ml-1 text-[11px] text-red-500 font-medium">{{ errors.phone }}</p>
                 </div>
 
                 <!-- Step 2: OTP -->
@@ -128,10 +255,12 @@ const prevStep = () => {
                     placeholder="000000"
                     maxlength="6"
                     class="w-full px-5 py-4 bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-center text-2xl tracking-[0.5em] font-mono dark:placeholder:text-slate-600"
+                    :class="{ 'border-red-400 dark:border-red-600': errors.code }"
                     @input="filterNumeric('otp')"
                     required
                   />
-                  <button type="button" @click="step = 1" class="mt-3 text-[10px] font-bold text-primary uppercase tracking-wider hover:opacity-80">Change number</button>
+                  <p v-if="errors.code" class="ml-1 text-[11px] text-red-500 font-medium">{{ errors.code }}</p>
+                  <button type="button" @click="step = 1; errors = {}" class="mt-3 text-[10px] font-bold text-primary uppercase tracking-wider hover:opacity-80">Change number</button>
                 </div>
 
                 <!-- Step 3: Profile -->
@@ -170,6 +299,7 @@ const prevStep = () => {
                       placeholder="••••"
                       maxlength="4"
                       class="w-full px-5 py-3.5 bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-center text-xl tracking-[1em]"
+                      :class="{ 'border-red-400 dark:border-red-600': errors.pin }"
                       @input="filterNumeric('pin')"
                       required
                     />
@@ -184,9 +314,11 @@ const prevStep = () => {
                       placeholder="••••"
                       maxlength="4"
                       class="w-full px-5 py-3.5 bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-center text-xl tracking-[1em]"
+                      :class="{ 'border-red-400 dark:border-red-600': errors.pin }"
                       @input="filterNumeric('pinConfirm')"
                       required
                     />
+                    <p v-if="errors.pin" class="ml-1 text-[11px] text-red-500 font-medium">{{ errors.pin }}</p>
                   </div>
                 </div>
               </div>
@@ -243,4 +375,3 @@ const prevStep = () => {
   transform: translateY(-10px);
 }
 </style>
-
