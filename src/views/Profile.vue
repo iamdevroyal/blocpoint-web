@@ -2,11 +2,37 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import AppShell from '../components/layout/AppShell.vue'
+import SearchablePicker from '../components/ui/SearchablePicker.vue'
 import { useAuthStore } from '../stores/auth'
 import apiClient from '../api/axios'
+import { getStates, getLgasByState } from 'nigerian-states-lgas-cities-towns'
 
 const router    = useRouter()
 const authStore = useAuthStore()
+
+// ─── Edit form state ───
+const editForm = ref({
+  first_name:    '',
+  last_name:     '',
+  email:         '',
+  address:       '',
+  state:         '',
+  lga:           '',
+  business_name: '',
+})
+
+// ─── Nigerian Geography ───
+const allStates = getStates()
+
+const availableLgas = computed(() => {
+  const s = editForm.value.state
+  if (!s) return []
+  return getLgasByState(s)
+})
+
+const onStateChange = () => {
+  editForm.value.lga = '' // reset lga
+}
 
 // ─── Live profile data ─────────────────────────────────────────────────────────
 
@@ -64,16 +90,6 @@ const showEdit    = ref(false)
 const isSaving    = ref(false)
 const saveError   = ref(null)
 const saveSuccess = ref(false)
-
-const editForm = ref({
-  first_name:    '',
-  last_name:     '',
-  email:         '',
-  address:       '',
-  state:         '',
-  lga:           '',
-  business_name: '',
-})
 
 const openEdit = () => {
   const p = agent.value?.profile ?? {}
@@ -321,16 +337,32 @@ const copyAccountNumber = async (num) => {
               { key: 'email',         label: 'Email Address', placeholder: 'you@example.com',   type: 'email' },
               { key: 'business_name', label: 'Business Name', placeholder: 'Optional',           type: 'text'  },
               { key: 'address',       label: 'Address',       placeholder: 'Street address',    type: 'text'  },
-              { key: 'state',         label: 'State',         placeholder: 'e.g. Lagos',        type: 'text'  },
-              { key: 'lga',           label: 'LGA',           placeholder: 'e.g. Eti-Osa',      type: 'text'  },
-            ]" :key="field.key" class="space-y-1.5">
-              <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest block px-1">{{ field.label }}</label>
-              <input
-                :type="field.type"
+              { key: 'state',         label: 'State',         placeholder: 'Select State',      type: 'picker' },
+              { key: 'lga',           label: 'LGA',           placeholder: 'Select LGA',        type: 'picker' },
+            ]" :key="field.key" class="space-y-1.5 relative">
+              
+              <!-- Custom Searchable Picker for State/LGA -->
+              <SearchablePicker
+                v-if="field.type === 'picker'"
                 v-model="editForm[field.key]"
+                :options="field.key === 'state' ? allStates : availableLgas"
+                :label="field.label"
                 :placeholder="field.placeholder"
-                class="w-full h-12 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl px-4 text-[13px] font-bold outline-none focus:ring-2 focus:ring-primary/20 dark:text-white transition"
+                :disabled="field.key === 'lga' && !editForm.state"
+                disabled-label="Select a state first"
+                @change="field.key === 'state' ? onStateChange() : null"
               />
+
+              <!-- Standard input -->
+              <div v-else class="space-y-1.5">
+                <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest block px-2">{{ field.label }}</label>
+                <input
+                  :type="field.type"
+                  v-model="editForm[field.key]"
+                  :placeholder="field.placeholder"
+                  class="w-full h-12 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/10 rounded-2xl px-4 text-[13px] font-bold outline-none focus:ring-2 focus:ring-primary/20 dark:text-white transition hover:border-primary/30"
+                />
+              </div>
             </div>
 
             <button type="submit" :disabled="isSaving"
@@ -353,4 +385,18 @@ const copyAccountNumber = async (num) => {
 .drawer-right-enter-from, .drawer-right-leave-to      { opacity: 0; transform: translateX(100%); }
 .fade-enter-active, .fade-leave-active { transition: opacity 0.2s ease; }
 .fade-enter-from,   .fade-leave-to     { opacity: 0; }
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(var(--color-primary), 0.2);
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(var(--color-primary), 0.4);
+}
 </style>
