@@ -5,6 +5,8 @@ import { useUIStore } from '../../stores/ui'
 import { useAuthStore } from '../../stores/auth'
 import { useDashboardStore } from '../../stores/dashboard'
 
+import SupportWidget from '../ui/SupportWidget.vue'
+
 const props = defineProps({
   title: {
     type: String,
@@ -51,11 +53,11 @@ const unreadCount   = computed(() => dash.unreadCount)
 const notifications = computed(() => dash.notifications)
 
 const navItems = [
-  { name: 'Home',    path: '/app/dashboard', icon: '🏠' },
-  { name: 'Wallet',  path: '/app/wallet',    icon: '�' },
-  { name: 'SoftPOS', path: '/app/softpos',   icon: '�' },
-  { name: 'Tax',     path: '/app/tax',       icon: '�' },
-  { name: 'Assets',  path: '/app/assets',    icon: '�️' },
+  { name: 'Home',    path: '/app/dashboard' },
+  { name: 'Wallet',  path: '/app/wallet' },
+  { name: 'SoftPOS', path: '/app/softpos' },
+  { name: 'Tax',     path: '/app/tax' },
+  { name: 'Cards',   path: '/app/cards' },
 ]
 
 const isActive = (path) => route.path.startsWith(path)
@@ -138,7 +140,23 @@ onUnmounted(() => document.removeEventListener('click', handleClickOutside))
           :class="isActive(item.path) ? 'bg-white/10 text-white' : 'text-slate-400 hover:bg-white/5'"
           @click="go(item.path)"
         >
-          <span>{{ item.icon }}</span>
+          <span class="opacity-70 group-hover:opacity-100 transition-opacity">
+            <template v-if="item.name === 'Home'">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            </template>
+            <template v-else-if="item.name === 'Wallet'">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg>
+            </template>
+            <template v-else-if="item.name === 'SoftPOS'">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4a15 15 0 0 1 15 15 M2 9a10 10 0 0 1 10 10 M2 14a5 5 0 0 1 5 5 M16 4h4a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-4 M15 2v16"/></svg>
+            </template>
+            <template v-else-if="item.name === 'Tax'">
+               <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </template>
+            <template v-else-if="item.name === 'Cards'">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+            </template>
+          </span>
           <span>{{ item.name }}</span>
         </button>
       </nav>
@@ -159,11 +177,13 @@ onUnmounted(() => document.removeEventListener('click', handleClickOutside))
     </main>
   </div>
 
+  <SupportWidget />
+
   <!-- Mobile layout -->
   <div class="md:hidden min-h-[100dvh] flex flex-col transition-colors duration-500 bg-slate-50 dark:bg-dark text-slate-900 dark:text-white relative overflow-x-hidden">
     <!-- Detached Glassmorphic Header -->
     <header
-      class="fixed top-4 inset-x-4 z-50 rounded-2xl border border-slate-200 dark:border-white/10 bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl px-4 py-3 flex items-center justify-between shadow-lg shadow-slate-200/50 dark:shadow-none transition-all"
+      class="fixed top-2 inset-x-4 z-50 rounded-2xl border border-slate-200 dark:border-white/10 bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl px-4 py-3 flex items-center justify-between shadow-lg shadow-slate-200/50 dark:shadow-none transition-all"
     >
       <!-- User info / dropdown trigger -->
       <div class="flex items-center gap-3 cursor-pointer active:scale-95 transition-transform relative" ref="userDropdownRef" @click="toggleUserDropdown">
@@ -274,7 +294,7 @@ onUnmounted(() => document.removeEventListener('click', handleClickOutside))
 
     <!-- Detached Glassmorphic Bottom Nav -->
     <nav
-      class="fixed bottom-6 inset-x-4 z-50 rounded-2xl border border-slate-200 dark:border-white/10 bg-white/80 dark:bg-slate-900/75 backdrop-blur-xl shadow-2xl shadow-slate-200/60 dark:shadow-none px-2 py-2 flex items-center justify-around"
+      class="fixed bottom-2 inset-x-4 z-50 rounded-2xl border border-slate-200 dark:border-white/10 bg-white/80 dark:bg-slate-900/75 backdrop-blur-xl shadow-2xl shadow-slate-200/60 dark:shadow-none px-2 py-2 flex items-center justify-around"
     >
       <button
         v-for="item in navItems"
@@ -285,19 +305,19 @@ onUnmounted(() => document.removeEventListener('click', handleClickOutside))
       >
         <span class="text-xl px-2 py-1 rounded-lg transition-colors" :class="isActive(item.path) ? 'bg-primary/10' : ''">
           <template v-if="item.name === 'Home'">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
           </template>
-          <template v-if="item.name === 'Wallet'">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+          <template v-else-if="item.name === 'Wallet'">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg>
           </template>
-          <template v-if="item.name === 'SoftPOS'">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M7 15h.01"/><path d="M11 15h.01"/><path d="M15 15h.01"/><path d="M19 15h.01"/><path d="M7 11h.01"/><path d="M11 11h.01"/><path d="M15 11h.01"/><path d="M19 11h.01"/><path d="M7 7h.01"/><path d="M11 7h.01"/><path d="M15 7h.01"/><path d="M19 7h.01"/></svg>
+          <template v-else-if="item.name === 'SoftPOS'">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4a15 15 0 0 1 15 15 M2 9a10 10 0 0 1 10 10 M2 14a5 5 0 0 1 5 5 M16 4h4a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-4 M15 2v16"/></svg>
           </template>
-          <template v-if="item.name === 'Tax'">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
+          <template v-else-if="item.name === 'Tax'">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
           </template>
-          <template v-if="item.name === 'Assets'">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M2 7v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7"/><path d="M12 11v8"/><path d="M8 15h8"/></svg>
+          <template v-else-if="item.name === 'Cards'">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
           </template>
         </span>
         <span class="text-[9px] font-extrabold tracking-tight uppercase">{{ item.name }}</span>

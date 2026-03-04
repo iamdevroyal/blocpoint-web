@@ -1,15 +1,17 @@
 <script setup>
-import { ref, computed, watch, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import AppShell from '../components/layout/AppShell.vue'
 import { useWalletStore, currencyMeta } from '../stores/wallet'
+import api from '../api/axios'
+import LoadingOverlay from '../components/ui/LoadingOverlay.vue'
 
 const router      = useRouter()
 const walletStore = useWalletStore()
 
 // ─── State ────────────────────────────────────────────────────────────────────
 
-const step         = ref(1)   // 1 = input, 2 = PIN confirm
+const step         = ref(1)   // 1 = input, 2 = PIN confirm, 3 = bank deposit instructions
 const fromAmount   = ref('')
 const isQuoting    = ref(false)
 const isConverting = ref(false)
@@ -18,6 +20,11 @@ const convertError = ref(null)
 const success      = ref(false)
 const pin          = ref(['', '', '', ''])
 const pinInputs    = ref([])
+
+// For YC Collection (NGN→USD) — returned by POST /conversions
+const bankInfo   = ref(null)  // { accountName, accountNumber, bankName, paymentReference, amount, currency }
+const ycFundInfo = ref(null)  // full funding response
+const copied     = ref(false)
 
 /** Live quote from GET /conversions/quote */
 const quote = ref(null)
@@ -57,6 +64,67 @@ const fromWallet = computed(() => wallets.value.find((w) => w.currency === fromC
 const toWallet   = computed(() => wallets.value.find((w) => w.currency === toCurrency.value))
 const fromMeta   = computed(() => currencyMeta(fromCurrency.value))
 const toMeta     = computed(() => currencyMeta(toCurrency.value))
+const isLoading  = ref(false)
+
+// ─── Countries & Flags ────────────────────────────────────────────────────────
+
+const countries = ref([])
+
+const fetchCountries = async () => {
+  try {
+    const { data } = await api.get('/remittance/countries')
+    countries.value = data?.data?.countries ?? data?.countries ?? []
+  } catch (err) {
+    console.error('Convert: Failed to fetch countries', err)
+  }
+}
+
+onMounted(() => {
+  fetchCountries()
+})
+
+/**
+ * Maps currency code to its respective flag image from public/flags/
+ */
+const getFlagUrl = (currency) => {
+  if (!currency) return null
+  const code = currency.toUpperCase().replace('GHC', 'GHS')
+  
+  // 1. Dynamic mapping from backend remittance/countries
+  if (countries.value?.length) {
+    const c = countries.value.find(x => x.currency === code)
+    if (c) {
+      const filename = c.name
+        .replace('S. Africa', 'South-Africa')
+        .replace('DR Congo', 'Congo-Democratic-Republic-of')
+        .replace('B. Faso', 'Burkina-Faso')
+        .replace('Ivory Coast', 'Cote-d-Ivoire')
+        .replace(/\s+/g, '-')
+      return `${import.meta.env.BASE_URL}flags/flag-of-${filename}.png`
+    }
+  }
+
+  // 2. Static fallback mapping
+  const staticMap = {
+    'NGN': 'Nigeria',
+    'KES': 'Kenya',
+    'GHS': 'Ghana',
+    'GHC': 'Ghana',
+    'TZS': 'Tanzania',
+    'UGX': 'Uganda',
+    'MWK': 'Malawi',
+    'ZAR': 'South-Africa',
+    'ZMW': 'Zambia',
+    'XOF': 'Senegal',  // Default regional flag
+    'XAF': 'Cameroon', // Default regional flag
+  }
+  
+  const countryName = staticMap[code]
+  return countryName ? `${import.meta.env.BASE_URL}flags/flag-of-${countryName}.png` : null
+}
+
+const fromFlagUrl = computed(() => getFlagUrl(fromCurrency.value))
+const toFlagUrl   = computed(() => getFlagUrl(toCurrency.value))
 
 /**
  * True when the quote's server-calculated total_debit exceeds the source wallet balance.
@@ -68,6 +136,9 @@ const balanceInsufficient = computed(() => {
   const avail = parseFloat(fromWallet.value?.available_balance ?? 0)
   return avail < parseFloat(quote.value.total_debit)
 })
+
+/** True when NGN→USD: POST /conversions returns bank transfer details */
+const isYcFlow = computed(() => quote.value?.flow === 'yc_collection')
 
 // ─── Quote logic ──────────────────────────────────────────────────────────────
 
@@ -96,21 +167,25 @@ const fetchQuote = async () => {
 
   isQuoting.value  = true
   quoteError.value = null
+  isLoading.value  = true
   resetQuote()
 
-  const result = await walletStore.getConversionQuote(
-    fromCurrency.value,
-    toCurrency.value,
-    amt
-  )
+  try {
+    const result = await walletStore.getConversionQuote(
+      fromCurrency.value,
+      toCurrency.value,
+      amt
+    )
 
-  isQuoting.value = false
-
-  if (result.error) {
-    quoteError.value = result.error
-  } else {
-    quote.value = result.quote
-    startCountdown(30)
+    if (result.error) {
+      quoteError.value = result.error
+    } else {
+      quote.value = result.quote
+      startCountdown(30)
+    }
+  } finally {
+    isQuoting.value = false
+    isLoading.value  = false
   }
 }
 
@@ -199,8 +274,21 @@ const executeConversion = async () => {
   if (result.error) {
     convertError.value = result.error
   } else {
+    // Standard swap or auto-NIP flow: show success immediately
     success.value = true
     clearInterval(countdownTimer)
+  }
+}
+
+// ─── Copy to clipboard ────────────────────────────────────────────────────────
+
+const copyAccountNumber = async () => {
+  try {
+    await navigator.clipboard.writeText(bankInfo.value?.accountNumber ?? '')
+    copied.value = true
+    setTimeout(() => { copied.value = false }, 2000)
+  } catch {
+    // silently ignore — some browsers block clipboard on non-HTTPS
   }
 }
 
@@ -247,14 +335,24 @@ const swapCurrencies = () => {
           </div>
           <div class="flex items-center gap-3">
             <!-- From currency dropdown (only agent's wallets) -->
-            <div class="relative w-[110px] shrink-0">
-              <select v-model="fromCurrency" class="w-full bg-slate-50 dark:bg-white/10 border border-slate-100 dark:border-white/5 rounded-2xl px-3 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-primary/20 appearance-none text-slate-900 dark:text-white cursor-pointer">
-                <option v-for="w in wallets" :key="w.currency" :value="w.currency" class="bg-white dark:bg-slate-900">
+            <div class="relative w-[130px] shrink-0 group overflow-hidden rounded-2xl shadow-inner border border-slate-200 dark:border-white/10 transition-all duration-500 bg-slate-900">
+              <!-- Flag Image with hover zoom effect -->
+              <img 
+                v-if="fromFlagUrl"
+                :src="fromFlagUrl"
+                class="absolute inset-0 w-full h-full object-cover scale-110 group-hover:scale-125 transition-transform duration-700 pointer-events-none opacity-100 brightness-[0.6]"
+                @error="(e) => (e.target.style.display = 'none')"
+              />
+              <!-- Fallback accent if no flag image -->
+              <div v-else class="absolute inset-0 bg-slate-100 dark:bg-white/10"></div>
+
+              <select v-model="fromCurrency" class="relative z-10 w-full bg-transparent border-0 px-3 py-4 text-xs font-black outline-none appearance-none text-white cursor-pointer uppercase tracking-widest">
+                <option v-for="w in wallets" :key="w.currency" :value="w.currency" class="bg-white dark:bg-slate-900 text-slate-900 dark:text-white normal-case tracking-normal">
                   {{ w.flag }} {{ w.currency }}
                 </option>
               </select>
-              <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none opacity-40">
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              <div class="absolute right-3 top-1/2 -translate-y-1/2 z-10 pointer-events-none text-white opacity-60">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
               </div>
             </div>
             <!-- Amount input — min-w-0 + overflow-hidden prevents it shooting out of the card -->
@@ -289,14 +387,24 @@ const swapCurrencies = () => {
           </div>
           <div class="flex items-center gap-3">
             <!-- To currency dropdown (only agent's OTHER wallets) -->
-            <div class="relative w-[110px] shrink-0">
-              <select v-model="toCurrency" class="w-full bg-slate-50 dark:bg-white/10 border border-slate-100 dark:border-white/5 rounded-2xl px-3 py-3 text-sm font-bold outline-none focus:ring-2 focus:ring-primary/20 appearance-none text-slate-900 dark:text-white cursor-pointer">
-                <option v-for="w in toWallets" :key="w.currency" :value="w.currency" class="bg-white dark:bg-slate-900">
+            <div class="relative w-[130px] shrink-0 group overflow-hidden rounded-2xl shadow-inner border border-slate-200 dark:border-white/10 transition-all duration-500 bg-slate-900">
+              <!-- Flag Image with hover zoom effect -->
+              <img 
+                v-if="toFlagUrl"
+                :src="toFlagUrl"
+                class="absolute inset-0 w-full h-full object-cover scale-110 group-hover:scale-125 transition-transform duration-700 pointer-events-none opacity-100 brightness-[0.6]"
+                @error="(e) => (e.target.style.display = 'none')"
+              />
+              <!-- Fallback accent if no flag image -->
+              <div v-else class="absolute inset-0 bg-slate-100 dark:bg-white/10"></div>
+
+              <select v-model="toCurrency" class="relative z-10 w-full bg-transparent border-0 px-3 py-4 text-xs font-black outline-none appearance-none text-white cursor-pointer uppercase tracking-widest">
+                <option v-for="w in toWallets" :key="w.currency" :value="w.currency" class="bg-white dark:bg-slate-900 text-slate-900 dark:text-white normal-case tracking-normal">
                   {{ w.flag }} {{ w.currency }}
                 </option>
               </select>
-              <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none opacity-40">
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              <div class="absolute right-3 top-1/2 -translate-y-1/2 z-10 pointer-events-none text-white opacity-60">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
               </div>
             </div>
 
@@ -426,9 +534,10 @@ const swapCurrencies = () => {
           class="w-full h-16 text-white text-xs font-bold rounded-3xl active:scale-95 transition-all uppercase tracking-widest"
           :class="pinComplete && !isConverting ? 'bg-primary shadow-xl shadow-primary/30' : 'bg-slate-300 dark:bg-white/10 cursor-not-allowed'"
         >
-          {{ isConverting ? 'Processing…' : 'Finalise Conversion' }}
+        {{ isConverting ? 'Processing…' : 'Finalise Conversion' }}
         </button>
       </div>
+
 
       <!-- ── Success ─────────────────────────────────────────────────────────── -->
       <div v-else-if="success" class="flex flex-col items-center justify-center gap-8 py-16 px-2">
@@ -436,12 +545,16 @@ const swapCurrencies = () => {
           <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-emerald-500"><path d="M20 6 9 17l-5-5"/></svg>
         </div>
         <div class="text-center space-y-2">
-          <h3 class="text-2xl font-bold text-slate-800 dark:text-white uppercase tracking-tight">Conversion Successful</h3>
+          <h3 class="text-2xl font-bold text-slate-800 dark:text-white uppercase tracking-tight">
+            {{ toCurrency === 'USD' ? 'Processing Transaction' : 'Conversion Successful' }}
+          </h3>
           <p class="text-sm text-slate-500 dark:text-slate-400">
             {{ fromMeta.symbol }}{{ Number(fromAmount).toLocaleString('en-US', { minimumFractionDigits: 2 }) }} {{ fromCurrency }}
-            → {{ toMeta.symbol }}{{ Number(quote?.to_amount ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2 }) }} {{ toCurrency }}
+            → {{ Number(quote?.to_amount ?? 0).toLocaleString('en-US', { minimumFractionDigits: toCurrency === 'USD' ? 4 : 2 }) }} {{ toCurrency }}
           </p>
-          <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Your wallets have been updated</p>
+          <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+            {{ toCurrency === 'USD' ? 'Your USD wallet will be updated automatically.' : 'Your wallets have been updated' }}
+          </p>
         </div>
         <button @click="router.push('/app/wallet')" class="w-full h-14 bg-primary text-white text-xs font-bold rounded-3xl shadow-xl shadow-primary/30 active:scale-95 transition-all uppercase tracking-widest">
           Back to Wallets
@@ -449,5 +562,9 @@ const swapCurrencies = () => {
       </div>
 
     </div>
+
+    <!-- Global Loading Overlay -->
+    <LoadingOverlay :show="isLoading" message="Fetching best rates..." />
   </AppShell>
 </template>
+

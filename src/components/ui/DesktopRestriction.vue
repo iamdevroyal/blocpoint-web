@@ -3,10 +3,10 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useUIStore } from '../../stores/ui'
 
 const ui = useUIStore()
-const isDesktop = ref(window.innerWidth > 768)
+const isDesktop = ref(window.innerWidth > 766)
 
 const checkScreenSize = () => {
-  isDesktop.value = window.innerWidth > 768
+  isDesktop.value = window.innerWidth > 766
 }
 
 onMounted(() => {

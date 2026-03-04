@@ -22,6 +22,9 @@ export const useAuthStore = defineStore('auth', {
          * @type {string|null}
          */
         otpToken: null,
+
+        /** @type {string|null} SHA-256 hash of the user's PIN for offline unlocking */
+        pinHash: localStorage.getItem('bp_pin_hash') || null,
     }),
 
     getters: {
@@ -39,13 +42,31 @@ export const useAuthStore = defineStore('auth', {
          * @param {string} expiresAt  ISO date string
          * @param {object} agent
          */
-        _persistSession(token, expiresAt, agent) {
+        async _persistSession(token, expiresAt, agent, pin = null) {
             this.token = token
             this.expiresAt = expiresAt
             this.user = agent
             localStorage.setItem('token', token)
             localStorage.setItem('token_expires_at', expiresAt)
             localStorage.setItem(USER_KEY, JSON.stringify(agent))
+
+            if (pin) {
+                const hash = await this._hashPin(pin)
+                this.pinHash = hash
+                localStorage.setItem('bp_pin_hash', hash)
+            }
+        },
+
+        /**
+         * Securely hash a PIN using SHA-256.
+         * @param {string} pin 
+         * @returns {Promise<string>}
+         */
+        async _hashPin(pin) {
+            const msgUint8 = new TextEncoder().encode(pin)
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8)
+            const hashArray = Array.from(new Uint8Array(hashBuffer))
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
         },
 
         /**
@@ -56,9 +77,11 @@ export const useAuthStore = defineStore('auth', {
             this.expiresAt = null
             this.user = null
             this.otpToken = null
+            this.pinHash = null
             localStorage.removeItem('token')
             localStorage.removeItem('token_expires_at')
             localStorage.removeItem(USER_KEY)
+            localStorage.removeItem('bp_pin_hash')
         },
 
         // ─── OTP helpers (registration onboarding) ───────────────────────────
@@ -137,7 +160,7 @@ export const useAuthStore = defineStore('auth', {
             }
 
             const { data } = await apiClient.post('/auth/register', payload)
-            this._persistSession(data.data.token, data.data.expires_at, data.data.agent)
+            await this._persistSession(data.data.token, data.data.expires_at, data.data.agent, pin)
             this.otpToken = null  // clear transient state
         },
 
@@ -152,7 +175,6 @@ export const useAuthStore = defineStore('auth', {
          * @param {string} credentials.pin    4-digit PIN
          * @returns {Promise<void>}
          * @throws {import('axios').AxiosError}
-         */
         async login({ phone, pin }) {
             const { data } = await apiClient.post('/auth/login', {
                 phone,
@@ -160,31 +182,31 @@ export const useAuthStore = defineStore('auth', {
                 device_id: getDeviceId(),
                 device_info: getDeviceInfo(),
             })
-            this._persistSession(data.data.token, data.data.expires_at, data.data.agent)
+            await this._persistSession(data.data.token, data.data.expires_at, data.data.agent, pin)
         },
 
-        // ─── Quick Login ──────────────────────────────────────────────────────
+    // ─── Quick Login ──────────────────────────────────────────────────────
 
-        /**
-         * PIN-only login for returning users on a bound device.
-         *
-         * The backend looks up the agent via the stored device_id so no phone
-         * is needed. Used after session expiry or as the biometric fallback.
-         *
-         * If the backend returns 422 "Device not recognized" (e.g. after app
-         * reinstall), the caller should catch it, clear the device_id and fall
-         * back to the full login form.
-         *
-         * @param {string} pin  4-digit PIN
-         * @returns {Promise<void>}
-         * @throws {import('axios').AxiosError}
-         */
+    /**
+     * PIN-only login for returning users on a bound device.
+     *
+     * The backend looks up the agent via the stored device_id so no phone
+     * is needed. Used after session expiry or as the biometric fallback.
+     *
+     * If the backend returns 422 "Device not recognized" (e.g. after app
+     * reinstall), the caller should catch it, clear the device_id and fall
+     * back to the full login form.
+     *
+     * @param {string} pin  4-digit PIN
+     * @returns {Promise<void>}
+     * @throws {import('axios').AxiosError}
+     */
         async quickLogin(pin) {
             const { data } = await apiClient.post('/auth/quick-login', {
                 device_id: getDeviceId(),
                 pin,
             })
-            this._persistSession(data.data.token, data.data.expires_at, data.data.agent)
+            await this._persistSession(data.data.token, data.data.expires_at, data.data.agent, pin)
         },
 
         // ─── Forgot PIN (unauthenticated reset) ──────────────────────────────
@@ -230,12 +252,36 @@ export const useAuthStore = defineStore('auth', {
         async resetPin(phone, newPin) {
             const { data } = await apiClient.post('/auth/reset-pin', {
                 phone,
-                otp_token:            this.otpToken,
-                new_pin:              newPin,
+                otp_token: this.otpToken,
+                new_pin: newPin,
                 new_pin_confirmation: newPin,
             })
             this.otpToken = null   // clear transient state
             return data.data
+        },
+
+        /**
+         * Verify PIN locally against stored hash for offline access.
+         * @param {string} pin 
+         * @returns {Promise<void>}
+         */
+        async offlineUnlock(pin) {
+            if (!this.pinHash) {
+                throw new Error('No local session found. Please log in online first.')
+            }
+
+            const inputHash = await this._hashPin(pin)
+            if (inputHash !== this.pinHash) {
+                throw new Error('Invalid PIN. Please try again.')
+            }
+
+            // Successfully unlocked: Ensure session state is active from cache
+            if (!this.user) {
+                const cachedUser = localStorage.getItem(USER_KEY)
+                if (cachedUser) this.user = JSON.parse(cachedUser)
+            }
+
+            // Note: Token and expiresAt are already loaded from localStorage in state()
         },
 
         // ─── Logout ───────────────────────────────────────────────────────────

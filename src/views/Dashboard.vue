@@ -79,10 +79,11 @@ const alerts = computed(() => {
 // ─── Static UI data (UI-only, not from backend) ──────────────────────────────
 
 const services = [
-  { name: 'Airtime', color: 'bg-orange-500/10 text-orange-500' },
-  { name: 'Data',    color: 'bg-emerald-500/10 text-emerald-500' },
-  { name: 'TV',      color: 'bg-blue-500/10 text-blue-500' },
-  { name: 'Loan',    color: 'bg-purple-500/10 text-purple-500' },
+  { name: 'Assets',     color: 'bg-yellow-500/10 text-yellow-500',   path: '/app/assets' },
+  { name: 'Airtime',    color: 'bg-orange-500/10 text-orange-500',   path: '/app/airtime' },
+  { name: 'Data',       color: 'bg-emerald-500/10 text-emerald-500', path: '/app/data' },
+  { name: 'TV',         color: 'bg-blue-500/10 text-blue-500',      path: '/app/tv' },
+  { name: 'Loan',       color: 'bg-purple-500/10 text-purple-500',   path: '/app/loans' },
 ]
 
 // ─── Handlers ─────────────────────────────────────────────────────────────────
@@ -304,35 +305,42 @@ onMounted(() => {
           <span class="text-[10px] font-bold text-slate-800 dark:text-slate-200 text-center leading-tight capitalize tracking-tight">To Bank</span>
         </button>
 
-        <button @click="go('/app/cards')" class="flex flex-col items-center gap-3 p-4 bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-white/5 rounded-3xl transition-all active:scale-95 group">
+        <button @click="go('/app/remit')" class="flex flex-col items-center gap-3 p-4 bg-white/50 dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-white/5 rounded-3xl transition-all active:scale-95 group">
           <div class="bg-emerald-500/10 text-emerald-500 w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm border border-black/5 dark:border-white/5 transition-transform group-hover:scale-110">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M7 15h.01"/><path d="M11 15h.01"/><path d="M15 15h.01"/><path d="M19 15h.01"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><path d="M2 12h20"/></svg>
           </div>
-          <span class="text-[10px] font-bold text-slate-800 dark:text-slate-200 text-center leading-tight capitalize tracking-tight">Cards</span>
+          <span class="text-[10px] font-bold text-slate-800 dark:text-slate-200 text-center leading-tight capitalize tracking-tight">Remit</span>
         </button>
       </div>
 
-      <!-- Utilities -->
       <div class="space-y-4">
         <div class="flex items-center justify-between px-2">
           <h3 class="text-sm font-bold text-slate-800 dark:text-slate-200 uppercase tracking-tighter">Utilities</h3>
         </div>
-        <div class="grid grid-cols-4 gap-4">
+        <div class="flex overflow-x-auto gap-5 scrollbar-hide snap-x pb-4 px-2">
           <button
             v-for="service in services"
             :key="service.name"
-            @click="service.name === 'Loan' ? go('/app/loans') : service.name === 'Airtime' ? go('/app/airtime') : service.name === 'Data' ? go('/app/data') : go('/app/tv')"
-            class="flex flex-col items-center gap-2.5 transition-all active:scale-90"
+            @click="go(service.path)"
+            class="min-w-[72px] flex flex-col items-center gap-2.5 transition-all active:scale-90 snap-start"
           >
-            <div :class="[service.color, 'w-14 h-14 rounded-[1.25rem] flex items-center justify-center shadow-sm border border-black/5 dark:border-white/5']">
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <path v-if="service.name === 'Airtime'" d="M12 18h.01 M8 21h8a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2z" />
-                <path v-if="service.name === 'Data'"    d="M12 20v-8m0 0l-4 4m4-4l4 4M4 4h16" />
-                <path v-if="service.name === 'TV'"      d="M2 8a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8z M7 21h10 M12 18v3" />
-                <path v-if="service.name === 'Loan'"    d="M12 2v20 M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+            <div :class="[service.color, 'w-16 h-16 rounded-[1.75rem] flex items-center justify-center shadow-sm border border-black/5 dark:border-white/5 bg-white dark:bg-slate-900 flex-shrink-0']">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <!-- Assets (Gem) -->
+                <path v-if="service.name === 'Assets'" d="M6 3h12l4 6-10 12L2 9z M11 3 8 9l3 12 M13 3 16 9l-3 12 M2 9h20" />
+                <!-- Airtime (Zap) -->
+                <path v-if="service.name === 'Airtime'" d="M13 2 3 14h9l-1 8 10-12h-9l1-8z" />
+                <!-- Data (Wifi) -->
+                <path v-if="service.name === 'Data'" d="M5 13a10 10 0 0 1 14 0 M8.5 16.5a5 5 0 0 1 7 0 M2 8.82a15 15 0 0 1 20 0 M12 20h.01" />
+                <!-- TV (Tv) -->
+                <path v-if="service.name === 'TV'" d="M2 8a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8z M7 21h10 M12 18v3" />
+               <!-- Loan (Dollar) -->
+                <path v-if="service.name === 'Loan'" d="M12 2v20 M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                <!-- SoftPOS (Contactless) -->
+                <path v-if="service.name === 'SoftPOS'" d="M2 4a15 15 0 0 1 15 15 M2 9a10 10 0 0 1 10 10 M2 14a5 5 0 0 1 5 5 M16 4h4a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-4 M15 2v16" />
               </svg>
             </div>
-            <span class="text-[10px] font-semibold text-slate-500 dark:text-slate-400 text-center tracking-tight">{{ service.name }}</span>
+            <span class="text-[10px] font-bold text-slate-500 dark:text-slate-400 text-center tracking-tight leading-tight">{{ service.name }}</span>
           </button>
         </div>
       </div>

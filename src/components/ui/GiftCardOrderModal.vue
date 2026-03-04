@@ -10,7 +10,7 @@ const emit = defineEmits(['close'])
 const showCode = ref(false)
 
 const shareToWhatsApp = () => {
-  const text = `*BlocPoint Asset Delivery* 🛍️\n\nAsset: ${props.order?.name}\nValue: ₦${props.order?.amount.toLocaleString()}\nCode: BP-${Math.random().toString(36).substr(2, 4).toUpperCase()}-${Math.random().toString(36).substr(2, 4).toUpperCase()}\n\n_Redeem your asset now on the BlocPoint app._`
+  const text = `*Blocpoint Asset Delivery* 🛍️\n\nAsset: ${props.order?.name}\nValue: ₦${props.order?.amount.toLocaleString()}\nCode: BP-${Math.random().toString(36).substr(2, 4).toUpperCase()}-${Math.random().toString(36).substr(2, 4).toUpperCase()}\n\n_Redeem your asset now on the Blocpoint app._`
   window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank')
 }
 </script>

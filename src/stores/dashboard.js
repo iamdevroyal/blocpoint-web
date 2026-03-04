@@ -16,14 +16,14 @@ import apiClient from '../api/axios'
 
 export const useDashboardStore = defineStore('dashboard', {
     state: () => ({
-        /** @type {{ available_balance: number, pending_balance: number, total_holds: number }|null} */
-        wallet: null,
+        /** @type {object|null} */
+        wallet: JSON.parse(localStorage.getItem('bp_dash_wallet') || 'null'),
 
         /** @type {Array} Recent transactions (up to 5) */
-        transactions: [],
+        transactions: JSON.parse(localStorage.getItem('bp_dash_txns') || '[]'),
 
         /** @type {Array} Notifications for the agent */
-        notifications: [],
+        notifications: JSON.parse(localStorage.getItem('bp_dash_notifs') || '[]'),
 
         isLoadingWallet: false,
         isLoadingTxns: false,
@@ -64,6 +64,13 @@ export const useDashboardStore = defineStore('dashboard', {
                 this.fetchTransactions(),
                 this.fetchNotifications(),
             ])
+            this._persist()
+        },
+
+        _persist() {
+            localStorage.setItem('bp_dash_wallet', JSON.stringify(this.wallet))
+            localStorage.setItem('bp_dash_txns', JSON.stringify(this.transactions))
+            localStorage.setItem('bp_dash_notifs', JSON.stringify(this.notifications))
         },
 
         /**
@@ -82,6 +89,7 @@ export const useDashboardStore = defineStore('dashboard', {
                 this.walletError = err?.response?.data?.message ?? 'Could not load balance.'
             } finally {
                 this.isLoadingWallet = false
+                this._persist()
             }
         },
 
@@ -102,6 +110,7 @@ export const useDashboardStore = defineStore('dashboard', {
                 this.transactions = []
             } finally {
                 this.isLoadingTxns = false
+                this._persist()
             }
         },
 
@@ -121,6 +130,7 @@ export const useDashboardStore = defineStore('dashboard', {
                 this.notifications = []
             } finally {
                 this.isLoadingNotifs = false
+                this._persist()
             }
         },
 
@@ -137,6 +147,8 @@ export const useDashboardStore = defineStore('dashboard', {
                 if (notif) notif.is_read = true
             } catch {
                 // Silently fail — the read state will re-sync on next load
+            } finally {
+                this._persist()
             }
         },
 
@@ -152,6 +164,8 @@ export const useDashboardStore = defineStore('dashboard', {
                 this.notifications = this.notifications.filter((n) => n.id !== id)
             } catch {
                 // Silently fail
+            } finally {
+                this._persist()
             }
         },
     },

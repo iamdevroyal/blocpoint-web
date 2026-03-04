@@ -17,7 +17,7 @@ export default defineConfig({
         background_color: '#ffffff',
         display: 'standalone',
         orientation: 'portrait',
-        start_url: '/onboarding',
+        start_url: '/auth/login',
         icons: [
           {
             src: '/icons/android/launchericon-192x192.png',

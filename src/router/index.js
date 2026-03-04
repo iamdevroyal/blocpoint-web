@@ -44,6 +44,7 @@ const routes = [
   { path: '/app/convert', component: () => import('../views/Convert.vue'), meta: { requiresAuth: true } },
   { path: '/app/refer', component: () => import('../views/ReferEarn.vue'), meta: { requiresAuth: true } },
   { path: '/app/cards', component: () => import('../views/app/Cards.vue'), meta: { requiresAuth: true } },
+  { path: '/app/remit', component: () => import('../views/app/Remit.vue'), meta: { requiresAuth: true } },
   { path: '/app/cards/apply', component: () => import('../views/app/CardApplication.vue'), meta: { requiresAuth: true } },
   { path: '/app/knowledge/:id', component: () => import('../views/app/KnowledgeArticle.vue'), meta: { requiresAuth: true } },
 ]

@@ -63,7 +63,7 @@ onMounted(() => {
 
           <div class="space-y-4">
             <p class="text-[11px] font-medium text-slate-500 dark:text-slate-400 leading-relaxed">
-              Install Blocpoint on your iPhone.
+              Install Blocpoint.
             </p>
 
             <div class="bg-slate-50 dark:bg-white/5 rounded-2xl p-4 space-y-3">
@@ -82,12 +82,12 @@ onMounted(() => {
             </div>
           </div>
 
-          <button 
+          <!-- <button 
             @click="dismiss"
             class="w-full h-12 bg-primary text-white text-[10px] font-black rounded-xl uppercase tracking-widest shadow-lg shadow-primary/20 active:scale-95 transition-all"
           >
             I'll do it later
-          </button>
+          </button> -->
         </div>
       </div>
     </div>

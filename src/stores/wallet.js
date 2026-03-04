@@ -26,6 +26,16 @@ export const CURRENCY_META = {
         textColor: 'text-slate-800 dark:text-white',
         accentBg: 'bg-slate-100 dark:bg-white/5',
     },
+    USD: {
+        code: 'USD',
+        name: 'US Dollar',
+        symbol: '$',
+        flag: '💵',
+        color: 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-500/20',
+        textColor: 'text-emerald-900 dark:text-emerald-100',
+        accentBg: 'bg-emerald-100 dark:bg-emerald-500/10',
+    },
+    // Legacy entries — kept for display of old transaction history
     KES: {
         code: 'KES',
         name: 'Kenyan Shilling',
@@ -64,6 +74,7 @@ export const CURRENCY_META = {
     },
 }
 
+
 /**
  * Get display metadata for a currency code.
  * Falls back to generic entry if code not in CURRENCY_META.
@@ -85,17 +96,16 @@ export function currencyMeta(code) {
 
 export const useWalletStore = defineStore('wallet', {
     state: () => ({
-        /** @type {Array<{id, currency, wallet_tag, available_balance, pending_balance, status}>} */
-        wallets: [],
+        /** @type {Array} */
+        wallets: JSON.parse(localStorage.getItem('bp_wallets') || '[]'),
 
-        /** @type {{id, currency, wallet_tag, available_balance, pending_balance}|null} */
-        activeWallet: null,
+        /** @type {object|null} */
+        activeWallet: JSON.parse(localStorage.getItem('bp_active_wallet') || 'null'),
 
         /**
          * Paginated transaction lists keyed by currency code.
-         * Each value: { data: [], currentPage: 1, lastPage: 1, loading: false }
          */
-        walletTransactions: {},
+        walletTransactions: JSON.parse(localStorage.getItem('bp_wallet_txns') || '{}'),
 
         /** Currencies available for wallet creation */
         availableCurrencies: [],
@@ -158,7 +168,14 @@ export const useWalletStore = defineStore('wallet', {
                 this.walletsError = err?.response?.data?.message ?? 'Could not load wallets.'
             } finally {
                 this.isLoadingWallets = false
+                this._persist()
             }
+        },
+
+        _persist() {
+            localStorage.setItem('bp_wallets', JSON.stringify(this.wallets))
+            localStorage.setItem('bp_active_wallet', JSON.stringify(this.activeWallet))
+            localStorage.setItem('bp_wallet_txns', JSON.stringify(this.walletTransactions))
         },
 
         /**
@@ -174,6 +191,7 @@ export const useWalletStore = defineStore('wallet', {
                 this.activeWallet = found
             }
             await this.fetchBalance(currency)
+            this._persist()
         },
 
         /**
@@ -203,6 +221,7 @@ export const useWalletStore = defineStore('wallet', {
                 this.balanceError = err?.response?.data?.message ?? 'Could not load balance.'
             } finally {
                 this.isLoadingBalance = false
+                this._persist()
             }
         },
 
@@ -238,6 +257,7 @@ export const useWalletStore = defineStore('wallet', {
                 this.walletTransactions[key].data = []
             } finally {
                 this.walletTransactions[key].loading = false
+                this._persist()
             }
         },
 

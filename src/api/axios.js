@@ -24,6 +24,14 @@ const apiClient = axios.create({
  *  - Idempotency-Key: for mutating requests (POST/PUT/PATCH/DELETE)
  */
 apiClient.interceptors.request.use((config) => {
+  // 1. Block mutating requests if offline
+  const isMutation = ['post', 'put', 'patch', 'delete'].includes((config.method || '').toLowerCase())
+  if (isMutation && !navigator.onLine) {
+    const error = new Error('Offline: Action blocked')
+    error.isOffline = true
+    return Promise.reject(error)
+  }
+
   // Attach Sanctum token if available
   const token = localStorage.getItem('token')
   if (token) {
@@ -34,8 +42,7 @@ apiClient.interceptors.request.use((config) => {
   config.headers['X-Correlation-Id'] = crypto.randomUUID()
 
   // Idempotency for mutating requests
-  const mutatingMethods = ['post', 'put', 'patch', 'delete']
-  if (mutatingMethods.includes((config.method || '').toLowerCase())) {
+  if (isMutation) {
     config.headers['Idempotency-Key'] = crypto.randomUUID()
   }
 
@@ -98,6 +105,11 @@ apiClient.interceptors.response.use(
       localStorage.removeItem('token')
       localStorage.removeItem('token_expires_at')
       window.location.href = '/auth/login?expired=1'
+      return Promise.reject(error)
+    }
+
+    // Handle our custom offline rejection
+    if (error.isOffline) {
       return Promise.reject(error)
     }
 

@@ -153,7 +153,22 @@ const handleQuickLogin = async () => {
 }
 
 /** Main form submit — dispatches to quick or full login based on mode. */
-const handleFormSubmit = () => {
+const handleFormSubmit = async () => {
+  if (!navigator.onLine) {
+    isLoading.value = true
+    errors.value = {}
+    firstError.value = null
+    try {
+      await authStore.offlineUnlock(pin.value)
+      router.push('/app/dashboard')
+    } catch (err) {
+      firstError.value = err.message
+    } finally {
+      isLoading.value = false
+    }
+    return
+  }
+
   if (isQuickLoginMode.value) {
     handleQuickLogin()
   } else {
@@ -186,6 +201,24 @@ const handleBiometricLogin = async () => {
     firstError.value = 'Please enter your PIN first, then tap the biometric button.'
     return
   }
+
+  if (!navigator.onLine) {
+    isBiometricScanning.value = true
+    errors.value = {}
+    firstError.value = null
+    try {
+      // Simulate scanning for a moment for UX
+      await new Promise(r => setTimeout(r, 800))
+      await authStore.offlineUnlock(pin.value)
+      router.push('/app/dashboard')
+    } catch (err) {
+      firstError.value = err.message
+    } finally {
+      isBiometricScanning.value = false
+    }
+    return
+  }
+
   isBiometricScanning.value = true
   errors.value = {}
   firstError.value = null
