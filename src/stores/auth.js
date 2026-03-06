@@ -267,7 +267,7 @@ export const useAuthStore = defineStore('auth', {
          */
         async offlineUnlock(pin) {
             if (!this.pinHash) {
-                throw new Error('No local session found. Please log in online first.')
+                throw new Error('Local session lost. Internet connection required.')
             }
 
             const inputHash = await this._hashPin(pin)

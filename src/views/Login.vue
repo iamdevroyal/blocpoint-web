@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUIStore }  from '../stores/ui'
 import { useAuthStore } from '../stores/auth'
@@ -67,6 +67,16 @@ const handlePhoneInput = (event) => {
 const handlePinInput = (event) => {
   pin.value = event.target.value.replace(/\D/g, '')
 }
+
+/**
+ * Auto-submit when the 4th digit is entered.
+ * This provides a premium, frictionless feel for both login and unlocking.
+ */
+watch(pin, (newPin) => {
+  if (newPin.length === 4 && !isLoading.value) {
+    handleFormSubmit()
+  }
+})
 
 // ─── Error helpers ────────────────────────────────────────────────────────────
 
