@@ -13,12 +13,13 @@ const step      = ref(1)
 const isLoading = ref(false)
 
 const form = ref({
-  phone:      '',
-  otp:        '',
-  firstName:  '',
-  lastName:   '',
-  pin:        '',
-  pinConfirm: '',
+  phone:        '',
+  otp:          '',
+  firstName:    '',
+  lastName:     '',
+  referralCode: '',
+  pin:          '',
+  pinConfirm:   '',
 })
 
 /** Validation/API errors from the backend, keyed by field or 'general'. */
@@ -103,12 +104,13 @@ async function handleStep4() {
   isLoading.value = true
   try {
     await authStore.register({
-      phone:      normalizePhone(form.value.phone),
-      otp:        form.value.otp,
-      firstName:  form.value.firstName,
-      lastName:   form.value.lastName,
-      pin:        form.value.pin,
-      pinConfirm: form.value.pinConfirm,
+      phone:        normalizePhone(form.value.phone),
+      otp:          form.value.otp,
+      firstName:    form.value.firstName,
+      lastName:     form.value.lastName,
+      pin:          form.value.pin,
+      pinConfirm:   form.value.pinConfirm,
+      referralCode: form.value.referralCode || undefined,
     })
     router.push('/app/dashboard')
   } catch (err) {
@@ -284,6 +286,20 @@ const firstError = computed(() => {
                       class="w-full px-5 py-3.5 bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
                       required
                     />
+                  </div>
+                  <!-- Optional Referral Code -->
+                  <div class="space-y-1.5">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 ml-1">Referral Code <span class="normal-case text-[9px] opacity-60 font-normal">(optional)</span></label>
+                    <input 
+                      v-model="form.referralCode"
+                      type="text" 
+                      placeholder="e.g. BLOC-ABCD12"
+                      maxlength="12"
+                      autocomplete="off"
+                      class="w-full px-5 py-3.5 bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all uppercase placeholder:normal-case"
+                      :class="{ 'border-red-400 dark:border-red-600': errors.referral_code }"
+                    />
+                    <p v-if="errors.referral_code" class="ml-1 text-[11px] text-red-500 font-medium">{{ errors.referral_code }}</p>
                   </div>
                 </div>
 

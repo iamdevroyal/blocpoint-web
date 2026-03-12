@@ -30,6 +30,9 @@ export const useDashboardStore = defineStore('dashboard', {
         isLoadingNotifs: false,
 
         walletError: null,
+
+        /** Timestamp (ms) of last successful full load — 2 min TTL */
+        _loadedAt: null,
     }),
 
     getters: {
@@ -54,16 +57,24 @@ export const useDashboardStore = defineStore('dashboard', {
     actions: {
         /**
          * Load all dashboard data in parallel.
-         * Failures are isolated — one section failing does not affect the others.
+         * TTL guard: skips API if last load was < 2 minutes ago, unless force=true.
          *
+         * @param {boolean} force  Bypass TTL guard (e.g. pull-to-refresh)
          * @returns {Promise<void>}
          */
-        async load() {
+        async load(force = false) {
+            // Guard: if offline, don't even try — keep whatever is in cache
+            if (typeof navigator !== 'undefined' && !navigator.onLine) return
+
+            const TWO_MIN = 2 * 60_000
+            if (!force && this._loadedAt && Date.now() - this._loadedAt < TWO_MIN) return
+
             await Promise.allSettled([
                 this.fetchWallet(),
                 this.fetchTransactions(),
                 this.fetchNotifications(),
             ])
+            this._loadedAt = Date.now()
             this._persist()
         },
 
@@ -86,7 +97,8 @@ export const useDashboardStore = defineStore('dashboard', {
                 const { data } = await apiClient.get('/wallets/NGN/balance')
                 this.wallet = data.data
             } catch (err) {
-                this.walletError = err?.response?.data?.message ?? 'Could not load balance.'
+                // If offline or error, preserve existing data. Only show warning if no data at all.
+                this.walletError = err?.response?.data?.message ?? 'Network error. Viewing offline data.'
             } finally {
                 this.isLoadingWallet = false
                 this._persist()
@@ -107,7 +119,7 @@ export const useDashboardStore = defineStore('dashboard', {
                 // Handle both paginated (data.data) and plain array responses
                 this.transactions = Array.isArray(data.data) ? data.data : (data.data?.data ?? [])
             } catch {
-                this.transactions = []
+                // Preserve existing transactions on error/offline
             } finally {
                 this.isLoadingTxns = false
                 this._persist()
@@ -127,7 +139,7 @@ export const useDashboardStore = defineStore('dashboard', {
                 })
                 this.notifications = Array.isArray(data.data) ? data.data : (data.data?.data ?? [])
             } catch {
-                this.notifications = []
+                // Preserve existing notifications on error/offline
             } finally {
                 this.isLoadingNotifs = false
                 this._persist()

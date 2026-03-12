@@ -6,6 +6,7 @@ import { articles } from '../data/knowledge'
 import { useDashboardStore } from '../stores/dashboard'
 import { useAuthStore } from '../stores/auth'
 import { useWalletStore } from '../stores/wallet'
+import { useSavingsStore } from '../stores/savings'
 import {
   transactionDisplayName,
   transactionIcon,
@@ -17,6 +18,7 @@ const router      = useRouter()
 const dash        = useDashboardStore()
 const auth        = useAuthStore()
 const walletStore = useWalletStore()
+const savingsStore = useSavingsStore()
 
 // ─── UI state ─────────────────────────────────────────────────────────────────
 
@@ -37,6 +39,16 @@ const balance = computed(() => {
 
 /** The currently selected currency display object */
 const selectedCurrency = computed(() => walletStore.activeWalletMeta ?? { code: 'NGN', symbol: '₦', name: 'Naira', flag: '🇳🇬' })
+
+/** Total Savings balance across all products */
+const totalSavings = computed(() => {
+  return formatBalance(savingsStore.overview?.total_balance || 0, selectedCurrency.value.symbol)
+})
+
+/** Total interest earned across all products */
+const totalInterest = computed(() => {
+    return formatBalance(savingsStore.overview?.total_interest_earned || 0, selectedCurrency.value.symbol)
+})
 
 /**
  * Account number derived from the agent's phone.
@@ -82,6 +94,7 @@ const services = [
   { name: 'Assets',     color: 'bg-yellow-500/10 text-yellow-500',   path: '/app/assets' },
   { name: 'Airtime',    color: 'bg-orange-500/10 text-orange-500',   path: '/app/airtime' },
   { name: 'Data',       color: 'bg-emerald-500/10 text-emerald-500', path: '/app/data' },
+  { name: 'Savings',    color: 'bg-primary/10 text-primary',        path: '/app/savings' },
   { name: 'TV',         color: 'bg-blue-500/10 text-blue-500',      path: '/app/tv' },
   { name: 'Loan',       color: 'bg-purple-500/10 text-purple-500',   path: '/app/loans' },
 ]
@@ -115,6 +128,7 @@ onMounted(() => {
   // Load dashboard data and wallets in parallel
   dash.load()
   walletStore.fetchWallets()
+  savingsStore.fetchOverview()
 })
 </script>
 
@@ -256,6 +270,21 @@ onMounted(() => {
                   <svg v-else xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
                 </button>
               </div>
+
+              <!-- Savings Summary (Injected) -->
+              <div v-if="savingsStore.overview?.total_balance > 0" class="flex items-center gap-3 pl-1 group cursor-pointer" @click="go('/app/savings')">
+                <div class="flex items-center gap-1.5">
+                    <span class="text-[9px] font-black uppercase tracking-widest text-white/40 group-hover:text-primary transition-colors">Savings:</span>
+                    <span class="text-xs font-black text-white" :class="{ 'blur-sm opacity-30': !showBalance }">{{ totalSavings }}</span>
+                </div>
+                <div class="w-px h-3 bg-white/10"></div>
+                <div class="flex items-center gap-1.5">
+                    <span class="text-[9px] font-black uppercase tracking-widest text-white/40 group-hover:text-primary transition-colors">Interest:</span>
+                    <span class="text-xs font-black text-emerald-400" :class="{ 'blur-sm opacity-30': !showBalance }">{{ totalInterest }}</span>
+                </div>
+                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-white/20 group-hover:text-primary transition-all group-hover:translate-x-0.5"><path d="m9 18 6-6-6-6"/></svg>
+              </div>
+
               <p class="text-[10px] font-semibold text-white/50 tracking-widest">{{ balanceUpdatedLabel }}</p>
             </div>
 
@@ -336,6 +365,8 @@ onMounted(() => {
                 <path v-if="service.name === 'TV'" d="M2 8a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8z M7 21h10 M12 18v3" />
                <!-- Loan (Dollar) -->
                 <path v-if="service.name === 'Loan'" d="M12 2v20 M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                <!-- Savings (Vault) -->
+                <path v-if="service.name === 'Savings'" d="M21 4H3a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z M12 15a3 3 0 1 1 0-6 3 3 0 0 1 0 6z M6 10h.01 M18 10h.01 M6 14h.01 M18 14h.01" />
                 <!-- SoftPOS (Contactless) -->
                 <path v-if="service.name === 'SoftPOS'" d="M2 4a15 15 0 0 1 15 15 M2 9a10 10 0 0 1 10 10 M2 14a5 5 0 0 1 5 5 M16 4h4a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-4 M15 2v16" />
               </svg>

@@ -51,6 +51,24 @@ export function transactionDisplayName(tx) {
         case 'loan_repayment':
             return 'Loan Repayment'
 
+        case 'funding':
+            return meta.vault_name ?? 'Savings Funding'
+
+        case 'interest_credit':
+            return 'Savings Interest'
+
+        case 'round_up':
+            return 'BlocRound Saving'
+
+        case 'maturity_payout':
+            return 'Maturity Payout'
+
+        case 'penalty':
+            return 'Early Break Penalty'
+
+        case 'savings_withdrawal':
+            return 'Savings Withdrawal'
+
         default:
             // Fallback: humanize the type string ("nip_transfer" → "Nip Transfer")
             return tx.type
@@ -82,6 +100,12 @@ export function transactionIcon(type) {
         gift_card_purchase: '🎁',
         loan_disbursement: '🏦',
         loan_repayment: '🔄',
+        funding: '💰',
+        interest_credit: '📈',
+        round_up: '🔄',
+        maturity_payout: '🏁',
+        penalty: '⚠️',
+        savings_withdrawal: '🏧',
     }
     return map[type] ?? '💳'
 }
@@ -94,7 +118,11 @@ export function transactionIcon(type) {
  * @returns {string}
  */
 export function formatTransactionAmount(tx, currencySymbol = '₦') {
-    const debitTypes = ['transfer_out', 'nip_transfer', 'withdrawal', 'bill_payment', 'airtime', 'data', 'cable_tv', 'gift_card_purchase', 'loan_repayment']
+    const debitTypes = [
+        'transfer_out', 'nip_transfer', 'withdrawal', 'bill_payment',
+        'airtime', 'data', 'cable_tv', 'gift_card_purchase',
+        'loan_repayment', 'funding', 'penalty'
+    ]
     const isDebit = debitTypes.includes(tx.type)
     const formatted = Number(tx.amount).toLocaleString('en-NG', { minimumFractionDigits: 2 })
     return `${isDebit ? '-' : '+'}${currencySymbol}${formatted}`

@@ -1,35 +1,37 @@
 <script setup>
-import { ref } from 'vue'
+import { onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import AppShell from '../../components/layout/AppShell.vue'
+import { useSettingsStore } from '../../stores/settings'
 
-const loginWithPin = ref(true)
-const loginWithBiometrics = ref(false)
-const transactionBiometrics = ref(true)
-const showPinModal = ref(false)
-const showPosPinModal = ref(false)
+const router   = useRouter()
+const settings = useSettingsStore()
 
-const router = useRouter()
+onMounted(() => settings.load())
+
+const toggleSecurity = (key) => {
+  const map = {
+    biometric_login: 'security_biometric_login',
+    biometric_txn:   'security_biometric_txn',
+  }
+  settings.updateSecurity({ [map[key]]: !settings.security[key] })
+}
 
 const securityItems = [
-  { id: 'pin', name: 'Change Login PIN', icon: '🔑', desc: 'Update your 4-digit access code', action: () => router.push('/app/settings/security/change-pin') },
-  { id: 'pos_pin', name: 'Reset POS PIN', icon: '🛒', desc: 'Secure code for card transactions', action: () => router.push('/app/settings/security/reset-pos-pin') },
+  { id: 'change_pin', name: 'Change Login PIN', icon: '🔑', desc: 'Update your 4-digit access code', path: '/app/settings/security/change-pin' },
+  { id: 'pos_pin',    name: 'Reset POS PIN',    icon: '🛒', desc: 'Secure code for card transactions', path: '/app/settings/security/reset-pos-pin' },
 ]
 
-const loginMethods = [
-  { id: 'use_pin', name: 'Standard PIN Access', icon: '🔢', toggle: loginWithPin },
-  { id: 'use_bio', name: 'Biometric Access', icon: '✋', desc: 'FaceID or Fingerprint', toggle: loginWithBiometrics },
-]
-
-const transactionSettings = [
-  { id: 'trans_bio', name: 'Transaction Biometrics', icon: '⚡', desc: 'Authorize payments faster', toggle: transactionBiometrics },
+const biometricItems = [
+  { id: 'biometric_login', name: 'Biometric Access',        icon: '✋', desc: 'FaceID or Fingerprint' },
+  { id: 'biometric_txn',   name: 'Transaction Biometrics',  icon: '⚡', desc: 'Authorize payments faster' },
 ]
 </script>
 
 <template>
   <AppShell title="Security Settings">
     <div class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-24 px-2">
-      
+
       <!-- Protection Summary -->
       <div class="p-8 bg-gradient-to-br from-emerald-600 to-emerald-900 rounded-[2.5rem] border border-white/10 shadow-2xl relative overflow-hidden group">
         <div class="absolute inset-0 bg-white/5 backdrop-blur-sm"></div>
@@ -41,19 +43,17 @@ const transactionSettings = [
         </div>
       </div>
 
-      <!-- General Security -->
+      <!-- Navigation items (change-pin, reset-pos-pin) -->
       <div class="space-y-4">
         <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-4">Standard Security</h3>
         <div class="bg-white/70 dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-white/5 rounded-[2.5rem] overflow-hidden shadow-sm">
-          <button v-for="(item, idx) in securityItems" :key="item.id" 
+          <button v-for="(item, idx) in securityItems" :key="item.id"
             class="w-full flex items-center justify-between p-5 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group border-none"
             :class="{ 'border-b border-slate-100 dark:border-white/5': idx !== securityItems.length - 1 }"
-            @click="item.action()"
+            @click="router.push(item.path)"
           >
             <div class="flex items-center gap-4 text-left">
-              <div class="w-11 h-11 rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-xl border border-black/5 dark:border-white/5 group-hover:scale-110 transition-transform">
-                {{ item.icon }}
-              </div>
+              <div class="w-11 h-11 rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-xl border border-black/5 dark:border-white/5 group-hover:scale-110 transition-transform">{{ item.icon }}</div>
               <div class="space-y-0.5">
                 <span class="text-[13px] font-bold text-slate-800 dark:text-white tracking-tight">{{ item.name }}</span>
                 <p class="text-[9px] font-medium text-slate-400 uppercase tracking-widest">{{ item.desc }}</p>
@@ -64,54 +64,31 @@ const transactionSettings = [
         </div>
       </div>
 
-      <!-- Login Options -->
+      <!-- Biometric toggles -->
       <div class="space-y-4">
-        <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-4">Login Preferences</h3>
+        <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-4">Login & Payment Auth</h3>
         <div class="bg-white/70 dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-white/5 rounded-[2.5rem] overflow-hidden shadow-sm">
-          <div v-for="(item, idx) in loginMethods" :key="item.id" 
-            class="flex items-center justify-between p-5 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group"
-            :class="{ 'border-b border-slate-100 dark:border-white/5': idx !== loginMethods.length - 1 }"
+          <div v-if="settings.isLoading" class="h-16 animate-pulse bg-slate-100 dark:bg-white/5"></div>
+          <div v-else v-for="(item, idx) in biometricItems" :key="item.id"
+            class="flex items-center justify-between p-5"
+            :class="{ 'border-b border-slate-100 dark:border-white/5': idx !== biometricItems.length - 1 }"
           >
             <div class="flex items-center gap-4">
-              <div class="w-11 h-11 rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-xl border border-black/5 dark:border-white/5 group-hover:scale-110 transition-transform">
-                {{ item.icon }}
-              </div>
-              <div class="space-y-0.5">
-                <span class="text-[13px] font-bold text-slate-800 dark:text-white tracking-tight">{{ item.name }}</span>
-                <p v-if="item.desc" class="text-[9px] font-medium text-slate-400 uppercase tracking-widest">{{ item.desc }}</p>
-              </div>
-            </div>
-            <label :for="item.id" class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" :id="item.id" v-model="item.toggle.value" class="sr-only peer">
-              <div class="w-10 h-5 bg-slate-200 dark:bg-slate-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary transition-all duration-300"></div>
-            </label>
-          </div>
-        </div>
-      </div>
-
-      <!-- Transaction Security -->
-      <div class="space-y-4">
-        <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] px-4">Payments & Auth</h3>
-        <div class="bg-white/70 dark:bg-slate-900/50 backdrop-blur-xl border border-slate-200 dark:border-white/5 rounded-[2.5rem] overflow-hidden shadow-sm">
-          <div v-for="(item, idx) in transactionSettings" :key="item.id" 
-            class="flex items-center justify-between p-5 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group"
-          >
-            <div class="flex items-center gap-4">
-              <div class="w-11 h-11 rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-xl border border-black/5 dark:border-white/5 group-hover:scale-110 transition-transform">
-                {{ item.icon }}
-              </div>
+              <div class="w-11 h-11 rounded-2xl bg-slate-100 dark:bg-white/5 flex items-center justify-center text-xl border border-black/5 dark:border-white/5">{{ item.icon }}</div>
               <div class="space-y-0.5">
                 <span class="text-[13px] font-bold text-slate-800 dark:text-white tracking-tight">{{ item.name }}</span>
                 <p class="text-[9px] font-medium text-slate-400 uppercase tracking-widest">{{ item.desc }}</p>
               </div>
             </div>
-            <label :for="item.id" class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" :id="item.id" v-model="item.toggle.value" class="sr-only peer">
-              <div class="w-10 h-5 bg-slate-200 dark:bg-slate-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary transition-all duration-300"></div>
-            </label>
+            <button @click="toggleSecurity(item.id)" class="relative inline-flex items-center cursor-pointer focus:outline-none" role="switch" :aria-checked="settings.security[item.id]" :disabled="settings.isSaving">
+              <div class="w-10 h-5 rounded-full transition-all duration-300 relative" :class="settings.security[item.id] ? 'bg-primary' : 'bg-slate-200 dark:bg-slate-800'">
+                <div class="absolute top-[2px] h-4 w-4 rounded-full bg-white border border-slate-300 transition-all duration-300" :class="settings.security[item.id] ? 'left-[22px] border-white' : 'left-[2px]'"></div>
+              </div>
+            </button>
           </div>
         </div>
       </div>
+
     </div>
   </AppShell>
 </template>

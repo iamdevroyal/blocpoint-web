@@ -55,6 +55,17 @@ export const useAuthStore = defineStore('auth', {
                 this.pinHash = hash
                 localStorage.setItem('bp_pin_hash', hash)
             }
+            // Immediately fetch fresh notifications so the bell icon shows
+            // the new login-activity in-app record (dispatched via NotificationJob)
+            // without waiting for the dashboard's 2-minute TTL to expire.
+            // Use a short delay to give the backend time to process the queue job.
+            setTimeout(async () => {
+                try {
+                    const { useDashboardStore } = await import('./dashboard')
+                    const dashboardStore = useDashboardStore()
+                    await dashboardStore.fetchNotifications()
+                } catch { /* non-critical — bell will refresh on next load */ }
+            }, 2000) // 2s: queue worker typically processes in < 1s
         },
 
         /**
@@ -82,6 +93,12 @@ export const useAuthStore = defineStore('auth', {
             localStorage.removeItem('token_expires_at')
             localStorage.removeItem(USER_KEY)
             localStorage.removeItem('bp_pin_hash')
+            // Clear persisted dashboard/notification state so next login
+            // always fetches fresh data (avoids stale "no notifications" from
+            // the previous session showing in the bell icon on first load).
+            localStorage.removeItem('bp_dash_notifs')
+            localStorage.removeItem('bp_dash_wallet')
+            localStorage.removeItem('bp_dash_txns')
         },
 
         // ─── OTP helpers (registration onboarding) ───────────────────────────
@@ -141,7 +158,7 @@ export const useAuthStore = defineStore('auth', {
          * @returns {Promise<void>}
          * @throws {import('axios').AxiosError}
          */
-        async register({ phone, otp, firstName, lastName, pin, pinConfirm }) {
+        async register({ phone, otp, firstName, lastName, pin, pinConfirm, referralCode }) {
             const payload = {
                 phone,
                 pin,
@@ -157,6 +174,11 @@ export const useAuthStore = defineStore('auth', {
                 payload.otp_token = this.otpToken
             } else if (otp) {
                 payload.otp_code = otp
+            }
+
+            // Attach referral code if provided at registration
+            if (referralCode) {
+                payload.referral_code = referralCode
             }
 
             const { data } = await apiClient.post('/auth/register', payload)

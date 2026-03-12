@@ -45,8 +45,18 @@ const routes = [
   { path: '/app/refer', component: () => import('../views/ReferEarn.vue'), meta: { requiresAuth: true } },
   { path: '/app/cards', component: () => import('../views/app/Cards.vue'), meta: { requiresAuth: true } },
   { path: '/app/remit', component: () => import('../views/app/Remit.vue'), meta: { requiresAuth: true } },
-  { path: '/app/cards/apply', component: () => import('../views/app/CardApplication.vue'), meta: { requiresAuth: true } },
+  { path: '/app/cards/apply', component: () => import('../views/app/CardApply.vue'), meta: { requiresAuth: true } },
   { path: '/app/knowledge/:id', component: () => import('../views/app/KnowledgeArticle.vue'), meta: { requiresAuth: true } },
+  { path: '/app/notifications/:id', component: () => import('../views/app/NotificationDetail.vue'), meta: { requiresAuth: true } },
+
+  // Savings
+  { path: '/app/savings', component: () => import('../views/app/Savings.vue'), meta: { requiresAuth: true } },
+  { path: '/app/savings/flex', component: () => import('../views/app/BlocFlex.vue'), meta: { requiresAuth: true } },
+  { path: '/app/savings/lock', component: () => import('../views/app/BlocLock.vue'), meta: { requiresAuth: true } },
+  { path: '/app/savings/lock/:ref', component: () => import('../views/app/BlocLockDetail.vue'), meta: { requiresAuth: true } },
+  { path: '/app/savings/goal', component: () => import('../views/app/BlocGoal.vue'), meta: { requiresAuth: true } },
+  { path: '/app/savings/goal/:ref', component: () => import('../views/app/BlocGoalDetail.vue'), meta: { requiresAuth: true } },
+  { path: '/app/savings/round', component: () => import('../views/app/BlocRound.vue'), meta: { requiresAuth: true } },
 ]
 
 const router = createRouter({

@@ -118,6 +118,11 @@ export const useWalletStore = defineStore('wallet', {
         walletsError: null,
         balanceError: null,
         createError: null,
+
+        /** Timestamp (ms) of last successful fetchWallets — 5-min TTL */
+        _loadedAt: null,
+        /** Per-currency timestamps of last fetchTransactions — 3-min TTL */
+        _txnLoadedAt: {},
     }),
 
     getters: {
@@ -139,11 +144,18 @@ export const useWalletStore = defineStore('wallet', {
     actions: {
         /**
          * Load all wallets for the authenticated agent.
-         * Sets activeWallet to first wallet in list.
+         * TTL guard: skips if loaded within last 5 minutes, unless force=true.
          *
+         * @param {boolean} force  Bypass TTL guard
          * @returns {Promise<void>}
          */
-        async fetchWallets() {
+        async fetchWallets(force = false) {
+            // Guard: if offline, don't even try — keep whatever is in cache
+            if (typeof navigator !== 'undefined' && !navigator.onLine) return
+
+            const FIVE_MIN = 5 * 60_000
+            if (!force && this._loadedAt && Date.now() - this._loadedAt < FIVE_MIN) return
+
             this.isLoadingWallets = true
             this.walletsError = null
             try {
@@ -164,8 +176,10 @@ export const useWalletStore = defineStore('wallet', {
                         ?? this.wallets.find((w) => w.currency === 'NGN')
                         ?? this.wallets[0]
                 }
+                this._loadedAt = Date.now()
             } catch (err) {
-                this.walletsError = err?.response?.data?.message ?? 'Could not load wallets.'
+                // Preserve existing wallets on error/offline
+                this.walletsError = err?.response?.data?.message ?? 'Viewing offline data.'
             } finally {
                 this.isLoadingWallets = false
                 this._persist()
@@ -218,7 +232,8 @@ export const useWalletStore = defineStore('wallet', {
                     this.activeWallet = { ...this.activeWallet, ...balance }
                 }
             } catch (err) {
-                this.balanceError = err?.response?.data?.message ?? 'Could not load balance.'
+                // Preserve balance on error/offline
+                this.balanceError = err?.response?.data?.message ?? 'Network error.'
             } finally {
                 this.isLoadingBalance = false
                 this._persist()
@@ -227,7 +242,8 @@ export const useWalletStore = defineStore('wallet', {
 
         /**
          * Fetch paginated transactions for a currency wallet.
-         * Results are cached — set force=true to bypass cache.
+         * Results are cached by currency — TTL 3 min.
+         * Set force=true to bypass TTL (e.g. after a send).
          *
          * @param {string}  currency
          * @param {number}  page
@@ -236,13 +252,19 @@ export const useWalletStore = defineStore('wallet', {
          */
         async fetchTransactions(currency, page = 1, force = false) {
             const key = currency.toUpperCase()
+            const THREE_MIN = 3 * 60_000
 
             if (!this.walletTransactions[key]) {
                 this.walletTransactions[key] = { data: [], currentPage: 1, lastPage: 1, loading: false }
             }
 
-            // Don't re-fetch if already loaded (unless forced)
-            if (this.walletTransactions[key].data.length && !force && page === 1) return
+            // Guard: if offline, don't even try
+            if (typeof navigator !== 'undefined' && !navigator.onLine) return
+
+            // TTL guard: skip if fresh and page 1 and data already present
+            const lastLoaded = this._txnLoadedAt[key] ?? 0
+            const fresh = Date.now() - lastLoaded < THREE_MIN
+            if (!force && fresh && page === 1 && this.walletTransactions[key].data.length) return
 
             this.walletTransactions[key].loading = true
             try {
@@ -253,8 +275,9 @@ export const useWalletStore = defineStore('wallet', {
                 this.walletTransactions[key].data = Array.isArray(result) ? result : (result.data ?? [])
                 this.walletTransactions[key].currentPage = result.current_page ?? 1
                 this.walletTransactions[key].lastPage = result.last_page ?? 1
+                if (page === 1) this._txnLoadedAt[key] = Date.now()
             } catch {
-                this.walletTransactions[key].data = []
+                // Preserve existing transactions on error/offline
             } finally {
                 this.walletTransactions[key].loading = false
                 this._persist()
@@ -272,7 +295,7 @@ export const useWalletStore = defineStore('wallet', {
                 const { data } = await apiClient.get('/wallets/available-currencies')
                 this.availableCurrencies = data.data ?? data
             } catch {
-                this.availableCurrencies = []
+                // Preserve existing available currencies on error/offline
             }
         },
 

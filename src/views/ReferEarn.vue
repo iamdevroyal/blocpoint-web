@@ -1,32 +1,111 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import AppShell from '../components/layout/AppShell.vue'
+import { useAuthStore } from '../stores/auth'
+import apiClient from '../api/axios'
 
-const referralCode = ref('BLOC-ROYAL-2026')
+const authStore = useAuthStore()
+
+// ─── State ───────────────────────────────────────────────────────────────────
+
+const isLoading   = ref(true)
 const showCopyToast = ref(false)
 
-const stats = [
-  { label: 'Total Earned', value: '₦12,500', icon: '💰', color: 'text-emerald-500' },
-  { label: 'Pending', value: '₦2,500', icon: '⏳', color: 'text-amber-500' },
-  { label: 'Invited Users', value: '24', icon: '👥', color: 'text-primary' }
-]
+/** Live stats fetched from backend */
+const referralData = ref({
+  referral_code:   null,
+  total_referrals: 0,
+  rewarded_count:  0,
+  pending_count:   0,
+  total_earned:    0,
+})
+
+// ─── Computed ─────────────────────────────────────────────────────────────────
+
+/** Referral code from live data or fallback to user object (available immediately after login) */
+const referralCode = computed(() =>
+  referralData.value.referral_code ?? authStore.user?.referral_code ?? '—'
+)
+
+const stats = computed(() => [
+  {
+    label: 'Total Earned',
+    value: isLoading.value ? '—' : `₦${referralData.value.total_earned.toLocaleString()}`,
+    icon: '💰',
+    color: 'text-emerald-500',
+  },
+  {
+    label: 'Pending Rewards',
+    value: isLoading.value ? '—' : referralData.value.pending_count,
+    icon: '⏳',
+    color: 'text-amber-500',
+  },
+  {
+    label: 'Invited Users',
+    value: isLoading.value ? '—' : referralData.value.total_referrals,
+    icon: '👥',
+    color: 'text-primary',
+  },
+])
 
 const steps = [
-  { title: 'Share Your Code', desc: 'Send your unique referral link to your friends and family.' },
-  { title: 'They Sign Up', desc: 'Your friends register on Blocpoint using your referral code.' },
-  { title: 'You Earn Rewards', desc: 'Get ₦500 credited to your wallet for every successful verification.' }
+  { title: 'Share Your Code',  desc: 'Send your unique referral code to your friends and family.' },
+  { title: 'They Sign Up',     desc: 'Your friends register on Blocpoint using your referral code.' },
+  { title: 'They Fund Wallet', desc: 'Once they add money to their wallet for the first time, you get ₦500 credited instantly.' },
 ]
 
+// ─── Actions ──────────────────────────────────────────────────────────────────
+
+/**
+ * Fetch the agent's referral stats from the backend.
+ */
+const loadStats = async () => {
+  isLoading.value = true
+  try {
+    const { data } = await apiClient.get('/agents/referrals')
+    referralData.value = data.data
+  } catch {
+    // Silently fall back — referral_code from auth store still shows
+  } finally {
+    isLoading.value = false
+  }
+}
+
+/**
+ * Copy the referral code to the clipboard.
+ */
 const copyCode = () => {
-  navigator.clipboard.writeText(referralCode.value)
-  showCopyToast.value = true
-  setTimeout(() => showCopyToast.value = false, 2000)
+  if (referralCode.value && referralCode.value !== '—') {
+    navigator.clipboard.writeText(referralCode.value)
+    showCopyToast.value = true
+    setTimeout(() => (showCopyToast.value = false), 2000)
+  }
+}
+
+/**
+ * Share via the Web Share API (native sheet), falling back to WhatsApp.
+ */
+const share = async () => {
+  const text = `Join me on Blocpoint and earn rewards! Use my code ${referralCode.value} to get started. ✨`
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: 'Join Blocpoint', text })
+      return
+    } catch {
+      // Cancelled or not supported — fall through to WhatsApp
+    }
+  }
+  window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank')
 }
 
 const shareToWhatsApp = () => {
-  const text = `Join me on Blocpoint and earn rewards! Use my code: ${referralCode.value} to get started. ✨`
+  const text = `Join me on Blocpoint and earn rewards! Use my code ${referralCode.value} to get started. ✨`
   window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank')
 }
+
+// ─── Lifecycle ────────────────────────────────────────────────────────────────
+
+onMounted(loadStats)
 </script>
 
 <template>
@@ -42,7 +121,7 @@ const shareToWhatsApp = () => {
           <div class="w-16 h-16 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center text-3xl shadow-inner mb-2">🎁</div>
           <h2 class="text-2xl font-bold text-white tracking-tight">Earn Rewards Together</h2>
           <p class="text-xs font-medium text-white/80 max-w-[280px] pb-1">
-            Get ₦500 for every friend who joins Blocpoint and completes their verification.
+            Get ₦500 for every friend who joins Blocpoint and <strong>funds their wallet</strong> for the first time.
           </p>
         </div>
       </div>
@@ -58,7 +137,9 @@ const shareToWhatsApp = () => {
             <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{{ stat.label }}</span>
             <span class="text-lg">{{ stat.icon }}</span>
           </div>
-          <p class="text-2xl font-bold tracking-tight" :class="stat.color">{{ stat.value }}</p>
+          <!-- Skeleton -->
+          <div v-if="isLoading" class="w-24 h-7 rounded-xl bg-slate-200 dark:bg-white/10 animate-pulse"></div>
+          <p v-else class="text-2xl font-bold tracking-tight" :class="stat.color">{{ stat.value }}</p>
         </div>
       </div>
 
@@ -73,7 +154,9 @@ const shareToWhatsApp = () => {
           @click="copyCode"
           class="w-full p-6 bg-slate-50 dark:bg-white/5 border-2 border-dashed border-primary/30 rounded-3xl flex flex-col items-center gap-2 group hover:bg-primary/5 transition-all relative"
         >
-          <span class="text-2xl font-black text-primary tracking-[0.2em] uppercase">{{ referralCode }}</span>
+        <!-- Skeleton -->
+          <div v-if="isLoading && !referralCode || referralCode === '—'" class="w-40 h-8 rounded-xl bg-slate-200 dark:bg-white/10 animate-pulse"></div>
+          <span v-else class="text-2xl font-black text-primary tracking-[0.2em] uppercase">{{ referralCode }}</span>
           <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Click To Copy</span>
           
           <Transition name="fade">
@@ -84,13 +167,13 @@ const shareToWhatsApp = () => {
         </button>
 
         <div class="flex gap-4 pt-2">
+          <button @click="share" class="flex-1 h-14 bg-primary text-white text-[10px] font-bold rounded-2xl active:scale-95 transition-all uppercase tracking-widest flex items-center justify-center gap-2 shadow-xl shadow-primary/30">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+            Invite Friends
+          </button>
           <button @click="shareToWhatsApp" class="flex-1 h-14 bg-[#25D366] text-white text-[10px] font-bold rounded-2xl active:scale-95 transition-all uppercase tracking-widest flex items-center justify-center gap-2 shadow-xl shadow-green-500/20">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/></svg>
             WhatsApp
-          </button>
-          <button @click="copyCode" class="flex-1 h-14 bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-white text-[10px] font-bold rounded-2xl active:scale-95 transition-all uppercase tracking-widest flex items-center justify-center gap-2 border border-black/5 dark:border-white/10">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
-            Copy Link
           </button>
         </div>
       </div>

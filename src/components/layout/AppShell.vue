@@ -93,7 +93,7 @@ const onOpenNotifications = async () => {
 const handleLogout = () => {
   ui.showConfirm({
     title:       'Sign Out',
-    message:     'Are you sure you want to end your session?',
+    message:     'Are you sure you want to leave?', 
     confirmText: 'Logout',
     onConfirm: async () => {
       await auth.logout()
@@ -262,9 +262,10 @@ onUnmounted(() => document.removeEventListener('click', handleClickOutside))
           <!-- Notification list -->
           <div v-else class="space-y-2">
             <div
-              v-for="notif in notifications"
+              v-for="notif in notifications.slice(0, 5)"
               :key="notif.id"
-              class="p-4 rounded-2xl border flex gap-4 transition-all active:scale-[0.98]"
+              @click="go('/app/notifications/' + notif.id)"
+              class="p-4 rounded-2xl border flex gap-4 transition-all active:scale-[0.98] cursor-pointer"
               :class="notif.is_read
                 ? 'bg-slate-50 dark:bg-white/5 border-slate-100 dark:border-white/5'
                 : 'bg-primary/5 border-primary/20'"
