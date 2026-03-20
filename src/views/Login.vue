@@ -106,8 +106,10 @@ function extractErrors(err) {
   }
 
   if (err.message === 'Network Error') {
-      return { general: 'Unable to connect. Please check your internet connection and try again.' }
+      const targetUrl = apiClient.defaults.baseURL || 'UNSET'
+      return { general: `Unable to connect (Target: ${targetUrl}). Please check your internet connection or if the live server is blocked.` }
   }
+
 
 
   console.error('[Auth] Extraction failed for error:', err)
