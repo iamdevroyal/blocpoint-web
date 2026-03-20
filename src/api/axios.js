@@ -102,9 +102,13 @@ apiClient.interceptors.response.use(
       }
     }
 
-    // For all other 401s (no token, refresh endpoint, already retried): same pattern —
-    // remove only the expired token, keep the user/device identity for quick-login.
-    if (error.response?.status === 401 && !hasToken) {
+    // For all other 401s (no token, refresh endpoint, already retried):
+    // ONLY redirect to login if the failing request is NOT an auth endpoint itself.
+    // If we redirect during a login/register call, the error never shows to the user.
+    const isAuthRequest = ['/auth/login', '/auth/register', '/auth/quick-login', '/auth/refresh', '/auth/forgot-pin', '/auth/reset-pin', '/auth/request-otp', '/auth/verify-otp']
+      .some(path => originalRequest?.url?.includes(path))
+
+    if (error.response?.status === 401 && !hasToken && !isAuthRequest) {
       localStorage.removeItem('token')
       localStorage.removeItem('token_expires_at')
       window.location.href = '/auth/login?expired=1'
