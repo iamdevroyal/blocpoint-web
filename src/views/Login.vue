@@ -106,8 +106,9 @@ function extractErrors(err) {
   }
 
   if (err.message === 'Network Error') {
-      return { general: 'Unable to connect to the server. Please check your internet or if the backend is running.' }
+      return { general: 'Unable to connect. Please check your internet connection and try again.' }
   }
+
 
   console.error('[Auth] Extraction failed for error:', err)
   return { general: 'Communication error. Please verify your connection or try again.' }
