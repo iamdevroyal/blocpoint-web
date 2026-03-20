@@ -124,12 +124,17 @@ export function formatTransactionAmount(tx, currencySymbol = '₦') {
         'loan_repayment', 'funding', 'penalty'
     ]
     const isDebit = debitTypes.includes(tx.type)
-    const formatted = Number(tx.amount).toLocaleString('en-NG', { minimumFractionDigits: 2 })
+    const formatted = Number(tx.amount).toLocaleString('en-NG', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    })
     return `${isDebit ? '-' : '+'}${currencySymbol}${formatted}`
 }
 
 /**
- * Format a currency balance number.
+ * Format a currency balance number to exactly 2 decimal places.
+ * NGN has 2 decimal places (kobo). DB stores 4dp for internal precision —
+ * this function ensures the UI always shows the user-facing 2dp only.
  *
  * @param {number|string|null} amount
  * @param {string} symbol
@@ -137,5 +142,8 @@ export function formatTransactionAmount(tx, currencySymbol = '₦') {
  */
 export function formatBalance(amount, symbol = '₦') {
     if (amount === null || amount === undefined) return `${symbol}—`
-    return `${symbol}${Number(amount).toLocaleString('en-NG', { minimumFractionDigits: 2 })}`
+    return `${symbol}${Number(amount).toLocaleString('en-NG', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    })}`
 }
