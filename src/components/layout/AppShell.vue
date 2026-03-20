@@ -14,6 +14,8 @@ const props = defineProps({
   },
 })
 
+const emit = defineEmits(['back'])
+
 const route  = useRoute()
 const router = useRouter()
 const ui     = useUIStore()

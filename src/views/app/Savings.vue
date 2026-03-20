@@ -3,15 +3,22 @@ import { onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import AppShell from '../../components/layout/AppShell.vue'
 import { useSavingsStore } from '../../stores/savings'
+import { formatBalance } from '../../utils/transaction'
 
 const router = useRouter()
 const savingsStore = useSavingsStore()
 
 // ─── Computed Stats ──────────────────────────────────────────────────────────
 
-const totalBalance = computed(() => savingsStore.overview?.total_balance || 0)
-const totalInterest = computed(() => savingsStore.overview?.total_interest_earned || 0)
-const activeVaultsCount = computed(() => savingsStore.overview?.active_vaults_count || 0)
+const totalBalance    = computed(() => savingsStore.overview?.total_balance || 0)
+const totalInterest   = computed(() => savingsStore.overview?.total_interest_earned || 0)
+const activeVaultsCount = computed(() => savingsStore.overview?.vault_count || 0)
+
+// Per-product snapshot chips
+const flexBalance      = computed(() => savingsStore.blocFlexVault?.available_balance || 0)
+const activeLockCount  = computed(() => savingsStore.activeLockPlans.length)
+const activeGoalCount  = computed(() => savingsStore.activeGoalPlans.length)
+const isRoundOn        = computed(() => savingsStore.roundRule?.is_enabled || false)
 
 // ─── Product Cards Configuration ──────────────────────────────────────────────
 
@@ -19,11 +26,12 @@ const products = [
   {
     code: 'blocflex',
     name: 'BlocFlex',
-    description: 'Liquid savings with daily interest. Withdraw anytime.',
+    description: 'Liquid savings. Withdraw anytime.',
     icon: '💧',
     color: 'bg-blue-500',
     gradient: 'from-blue-500 to-cyan-400',
-    route: '/app/savings/flex'
+    route: '/app/savings/flex',
+    badge: computed(() => formatBalance(flexBalance.value))
   },
   {
     code: 'bloclock',
@@ -32,25 +40,28 @@ const products = [
     icon: '🔒',
     color: 'bg-indigo-600',
     gradient: 'from-indigo-600 to-purple-500',
-    route: '/app/savings/lock'
+    route: '/app/savings/lock',
+    badge: computed(() => activeLockCount.value > 0 ? `${activeLockCount.value} Active Plan${activeLockCount.value > 1 ? 's' : ''}` : null)
   },
   {
     code: 'blocgoal',
     name: 'BlocGoal',
-    description: 'Save toward specific life goals and milestones.',
+    description: 'Save toward specific life goals.',
     icon: '🎯',
     color: 'bg-emerald-500',
     gradient: 'from-emerald-500 to-teal-400',
-    route: '/app/savings/goal'
+    route: '/app/savings/goal',
+    badge: computed(() => activeGoalCount.value > 0 ? `${activeGoalCount.value} Goal${activeGoalCount.value > 1 ? 's' : ''}` : null)
   },
   {
     code: 'blocround',
     name: 'BlocRound',
-    description: 'Automatically save your spare change as you spend.',
+    description: 'Auto-save your spare change as you spend.',
     icon: '🔄',
     color: 'bg-amber-500',
     gradient: 'from-amber-500 to-orange-400',
-    route: '/app/savings/round'
+    route: '/app/savings/round',
+    badge: computed(() => isRoundOn.value ? 'Active' : null)
   }
 ]
 
@@ -62,10 +73,9 @@ const getProductRate = (code) => {
 
 // ─── Lifecycle ────────────────────────────────────────────────────────────────
 
-onMounted(async () => {
-  savingsStore.fetchOverview()
+onMounted(() => {
   savingsStore.fetchProducts()
-  savingsStore.fetchVaults()
+  savingsStore.refreshAll()
 })
 </script>
 
@@ -91,14 +101,18 @@ onMounted(async () => {
             </div>
           </div>
 
-          <div class="grid grid-cols-2 gap-4 pt-4 border-t border-white/5">
-            <div class="space-y-1">
+          <div class="grid grid-cols-4 gap-2 pt-4 border-t border-white/5">
+            <div class="col-span-2 space-y-0.5">
               <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Interest Earned</p>
-              <p class="text-sm font-bold text-emerald-400 tracking-tight">+₦{{ totalInterest.toLocaleString('en-US', { minimumFractionDigits: 2 }) }}</p>
+              <p class="text-sm font-bold text-emerald-400 tracking-tight">+{{ formatBalance(totalInterest) }}</p>
             </div>
-            <div class="space-y-1">
-              <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Active Plans</p>
-              <p class="text-sm font-bold text-white tracking-tight">{{ activeVaultsCount }} Plans</p>
+            <div class="space-y-0.5">
+              <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Plans</p>
+              <p class="text-sm font-bold text-white tracking-tight">{{ activeVaultsCount }}</p>
+            </div>
+            <div class="space-y-0.5">
+              <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Round</p>
+              <p class="text-sm font-bold tracking-tight" :class="isRoundOn ? 'text-amber-400' : 'text-slate-500'">{{ isRoundOn ? 'ON' : 'OFF' }}</p>
             </div>
           </div>
         </div>
@@ -137,11 +151,22 @@ onMounted(async () => {
               <div class="flex-1 space-y-1">
                 <div class="flex items-center justify-between">
                   <h4 class="text-sm font-black text-slate-800 dark:text-white tracking-tight">{{ p.name }}</h4>
-                  <div 
-                    v-if="getProductRate(p.code)"
-                    class="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-500 text-[9px] font-black tracking-widest uppercase border border-emerald-500/20"
-                  >
-                    Up to {{ getProductRate(p.code) }} PA
+                  <div class="flex items-center gap-1.5">
+                    <div 
+                      v-if="p.badge?.value"
+                      class="px-2 py-0.5 rounded-full text-[8px] font-black tracking-widest uppercase border"
+                      :class="p.code === 'blocround'
+                        ? 'bg-amber-500/10 text-amber-500 border-amber-500/20'
+                        : 'bg-indigo-500/10 text-indigo-500 border-indigo-500/20'"
+                    >
+                      {{ p.badge.value }}
+                    </div>
+                    <div 
+                      v-if="getProductRate(p.code)"
+                      class="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 text-[8px] font-black tracking-widest uppercase border border-emerald-500/20"
+                    >
+                      {{ getProductRate(p.code) }} PA
+                    </div>
                   </div>
                 </div>
                 <p class="text-[10px] font-medium text-slate-500 dark:text-slate-400 leading-relaxed">{{ p.description }}</p>

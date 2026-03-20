@@ -22,7 +22,8 @@ const successMessage = ref('')
 
 // ─── Computed ───────────────────────────────────────────────────────────────
 
-const goalPlans = computed(() => savingsStore.vaults.filter(v => v.product_code === 'blocgoal'))
+// goalPlans comes from savingsStore.goalPlans — flat BlocGoalPlanResource objects
+const goalPlans = computed(() => savingsStore.goalPlans)
 const goalProduct = computed(() => savingsStore.products.find(p => p.code === 'blocgoal'))
 
 // ─── Methods ────────────────────────────────────────────────────────────────
@@ -55,8 +56,8 @@ const handleCreate = async () => {
   errorMessage.value = ''
   try {
     await savingsStore.createGoal({
-      name: goalName.value,
-      target_amount: targetAmount.value,
+      goal_name: goalName.value,
+      target_amount: Number(targetAmount.value),
       target_date: targetDate.value || null
     })
     successMessage.value = 'Goal created! Time to start saving.'
@@ -71,22 +72,22 @@ const handleCreate = async () => {
   }
 }
 
-const getProgress = (vault) => {
-  const target = vault.goalPlan?.target_amount || 1
-  const saved = vault.available_balance || 0
+const getProgress = (plan) => {
+  const target = Number(plan.target_amount) || 1
+  const saved = Number(plan.available_balance) || 0
   return Math.min(100, Math.round((saved / target) * 100))
 }
 
-const getDaysLeft = (vault) => {
-  if (!vault.goalPlan?.target_date) return null
-  const end = new Date(vault.goalPlan.target_date).getTime()
+const getDaysLeft = (plan) => {
+  if (!plan.target_date) return null
+  const end = new Date(plan.target_date).getTime()
   const now = Date.now()
   const diff = end - now
   return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)))
 }
 
 const fetchData = async () => {
-  savingsStore.fetchVaults(true)
+  savingsStore.fetchGoalPlans(true)
 }
 
 onMounted(() => {
@@ -130,9 +131,9 @@ onMounted(() => {
 
         <div v-if="goalPlans.length > 0" class="grid gap-4">
           <div 
-            v-for="vault in goalPlans" 
-            :key="vault.id"
-            @click="router.push(`/app/savings/goal/${vault.goalPlan?.goal_ref || vault.id}`)"
+            v-for="plan in goalPlans" 
+            :key="plan.id"
+            @click="router.push(`/app/savings/goal/${plan.goal_ref}`)"
             class="p-6 rounded-[2.5rem] bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 shadow-sm active:scale-[0.98] transition-all space-y-4 group"
           >
             <div class="flex items-start justify-between">
@@ -141,27 +142,30 @@ onMounted(() => {
                   ⭐
                 </div>
                 <div>
-                  <h4 class="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider">{{ vault.goalPlan?.goal_name }}</h4>
+                  <h4 class="text-xs font-black text-slate-800 dark:text-white uppercase tracking-wider">{{ plan.goal_name }}</h4>
                   <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
-                    Target: {{ formatBalance(vault.goalPlan?.target_amount) }}
+                    Target: {{ formatBalance(plan.target_amount) }}
                   </p>
                 </div>
               </div>
-              <div v-if="getDaysLeft(vault) !== null" class="px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-500 text-[8px] font-black uppercase tracking-widest border border-blue-500/10">
-                {{ getDaysLeft(vault) }}d Left
+              <div v-if="getDaysLeft(plan) !== null" class="px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-500 text-[8px] font-black uppercase tracking-widest border border-blue-500/10">
+                {{ getDaysLeft(plan) }}d Left
               </div>
             </div>
 
             <div class="space-y-2">
               <div class="flex justify-between items-end">
                 <p class="text-[16px] font-black tracking-tighter text-slate-800 dark:text-white">
-                  {{ formatBalance(vault.available_balance) }}
+                  {{ formatBalance(plan.available_balance) }}
                 </p>
-                <p class="text-[10px] font-black text-emerald-500 uppercase tracking-widest">{{ getProgress(vault) }}%</p>
+                <p class="text-[10px] font-black text-emerald-500 uppercase tracking-widest">{{ getProgress(plan) }}%</p>
               </div>
               <div class="h-2 w-full bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
-                <div class="h-full bg-emerald-500 transition-all duration-1000" :style="{ width: getProgress(vault) + '%' }"></div>
+                <div class="h-full bg-emerald-500 transition-all duration-1000" :style="{ width: getProgress(plan) + '%' }"></div>
               </div>
+              <p class="text-[8px] font-bold text-slate-400 uppercase tracking-widest text-right">
+                {{ formatBalance(plan.available_balance) }} of {{ formatBalance(plan.target_amount) }} saved
+              </p>
             </div>
           </div>
         </div>

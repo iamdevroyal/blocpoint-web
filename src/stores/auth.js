@@ -197,6 +197,7 @@ export const useAuthStore = defineStore('auth', {
          * @param {string} credentials.pin    4-digit PIN
          * @returns {Promise<void>}
          * @throws {import('axios').AxiosError}
+         */
         async login({ phone, pin }) {
             const { data } = await apiClient.post('/auth/login', {
                 phone,
@@ -207,27 +208,29 @@ export const useAuthStore = defineStore('auth', {
             await this._persistSession(data.data.token, data.data.expires_at, data.data.agent, pin)
         },
 
-    // ─── Quick Login ──────────────────────────────────────────────────────
+        // ─── Quick Login ──────────────────────────────────────────────────────
 
-    /**
-     * PIN-only login for returning users on a bound device.
-     *
-     * The backend looks up the agent via the stored device_id so no phone
-     * is needed. Used after session expiry or as the biometric fallback.
-     *
-     * If the backend returns 422 "Device not recognized" (e.g. after app
-     * reinstall), the caller should catch it, clear the device_id and fall
-     * back to the full login form.
-     *
-     * @param {string} pin  4-digit PIN
-     * @returns {Promise<void>}
-     * @throws {import('axios').AxiosError}
-     */
+        /**
+         * PIN-only login for returning users on a bound device.
+         *
+         * The backend looks up the agent via the stored device_id so no phone
+         * is needed. Used after session expiry or as the biometric fallback.
+         *
+         * If the backend returns 422 "Device not recognized" (e.g. after app
+         * reinstall), the caller should catch it, clear the device_id and fall
+         * back to the full login form.
+         *
+         * @param {string} pin  4-digit PIN
+         * @returns {Promise<void>}
+         * @throws {import('axios').AxiosError}
+         */
         async quickLogin(pin) {
-            const { data } = await apiClient.post('/auth/quick-login', {
+            const payload = {
                 device_id: getDeviceId(),
                 pin,
-            })
+            }
+            console.log('[AuthStore] quickLogin Payload:', payload)
+            const { data } = await apiClient.post('/auth/quick-login', payload)
             await this._persistSession(data.data.token, data.data.expires_at, data.data.agent, pin)
         },
 

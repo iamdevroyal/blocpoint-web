@@ -94,7 +94,7 @@ const handleCreate = async () => {
 }
 
 const fetchData = async () => {
-  savingsStore.fetchVaults(true)
+  savingsStore.fetchLockPlans(true)
   walletStore.fetchWallets(true)
 }
 
@@ -142,22 +142,28 @@ onMounted(() => {
           <div 
             v-for="plan in lockPlans" 
             :key="plan.id"
-            @click="router.push(`/app/savings/lock/${plan.lockPlan?.plan_ref || plan.id}`)"
+            @click="router.push(`/app/savings/lock/${plan.plan_ref}`)"
             class="p-6 rounded-[2rem] bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/5 shadow-sm active:scale-[0.98] transition-all flex items-center justify-between group"
           >
             <div class="flex items-center gap-4">
               <div class="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
-                💰
+                🔒
               </div>
               <div>
-                <h4 class="text-sm font-black text-slate-800 dark:text-white">{{ formatBalance(plan.available_balance) }}</h4>
-                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Matures {{ new Date(plan.lockPlan?.matures_at).toLocaleDateString() }}</p>
+                <h4 class="text-sm font-black text-slate-800 dark:text-white">{{ formatBalance(plan.amount) }}</h4>
+                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+                  Matures {{ plan.matures_at ? new Date(plan.matures_at).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' }) : '—' }}
+                </p>
               </div>
             </div>
-            <div class="text-right">
+            <div class="text-right space-y-1.5">
               <p class="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Active</p>
-              <div class="w-20 h-1 bg-slate-100 dark:bg-white/5 rounded-full mt-2 overflow-hidden">
-                <div class="h-full bg-indigo-500 w-1/2"></div>
+              <p class="text-[9px] font-bold text-indigo-400 uppercase tracking-widest">+{{ (plan.interest_rate * 100).toFixed(0) }}% PA</p>
+              <div class="w-20 h-1.5 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
+                <div 
+                  class="h-full bg-indigo-500 transition-all"
+                  :style="{ width: Math.min(100, Math.max(2, ((Date.now() - new Date(plan.start_at)) / (new Date(plan.matures_at) - new Date(plan.start_at))) * 100)).toFixed(0) + '%' }"
+                ></div>
               </div>
             </div>
           </div>

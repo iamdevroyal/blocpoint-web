@@ -15,6 +15,7 @@ const pin      = ref('')
 const rememberMe = ref(false)
 const isLoading  = ref(false)
 const isBiometricScanning = ref(false)
+const showPin = ref(false)
 
 /** Validation and API errors */
 const errors = ref({})
@@ -33,10 +34,10 @@ const bannerType    = ref('info') // 'info' | 'success'
 onMounted(() => {
   const deviceId = getDeviceId()
 
-  // Quick-login mode activates whenever this browser/device has a stored device_id.
-  // We no longer require bp_user to still be present — the axios interceptor preserves
-  // device_id and bp_user on token-expiry so this path works after session expires.
-  if (deviceId) {
+  // Quick-login mode activates whenever this browser/device has a stored device_id
+  // AND a stored user identity.
+  const user = localStorage.getItem('bp_user')
+  if (deviceId && user) {
     isQuickLoginMode.value = true
   }
 
@@ -88,15 +89,25 @@ watch(pin, (newPin) => {
  */
 function extractErrors(err) {
   const res = err?.response?.data
-  if (!res) return { general: 'An unexpected error occurred. Please try again.' }
-  if (res.errors) {
+  
+  if (res && typeof res === 'object' && res.errors) {
     const flat = {}
     for (const [field, messages] of Object.entries(res.errors)) {
       flat[field] = Array.isArray(messages) ? messages[0] : messages
     }
     return flat
   }
-  return { general: res.message || 'Invalid credentials.' }
+  
+  if (res && typeof res === 'object' && res.message) {
+      return { general: res.message }
+  }
+
+  if (err.message === 'Network Error') {
+      return { general: 'Unable to connect to the server. Please check your internet or if the backend is running.' }
+  }
+
+  console.error('[Auth] Extraction failed for error:', err)
+  return { general: 'Communication error. Please verify your connection or try again.' }
 }
 
 const firstError = ref(null)
@@ -148,8 +159,12 @@ const handleQuickLogin = async () => {
     const status = err?.response?.status
     const message = err?.response?.data?.message || ''
 
-    // Device not recognized (e.g. after reinstall) → fall back to full login
-    if (status === 422 && message.toLowerCase().includes('device not recognized')) {
+    // Device not recognized (e.g. after reinstall or DB reset) → fall back to full login
+    const isUnrecognizedDevice = 
+      message.toLowerCase().includes('device not recognized') ||
+      err?.response?.data?.errors?.device_id?.[0]?.toLowerCase().includes('device not recognized');
+
+    if (status === 422 && isUnrecognizedDevice) {
       clearDeviceId()
       isQuickLoginMode.value = false
       errors.value = {}
@@ -179,10 +194,12 @@ const handleFormSubmit = async () => {
     return
   }
 
+  console.log('[Auth] Submitting login form. QuickLogin:', isQuickLoginMode.value)
+
   if (isQuickLoginMode.value) {
-    handleQuickLogin()
+    await handleQuickLogin()
   } else {
-    handleLogin()
+    await handleLogin()
   }
 }
 
@@ -369,18 +386,29 @@ const handleBiometricLogin = async () => {
                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Secure PIN</label>
                 <router-link to="/auth/forgot-pin" class="text-xs font-bold text-primary hover:text-indigo-400 transition-colors">Forgot?</router-link>
               </div>
-              <input 
-                v-model="pin"
-                type="password" 
-                inputmode="numeric"
-                pattern="[0-9]*"
-                placeholder="••••"
-                maxlength="4"
-                class="w-full px-5 py-3.5 bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-center text-xl tracking-[1em] dark:placeholder:text-slate-600"
-                :class="{ 'border-red-400 dark:border-red-600': errors.pin }"
-                @input="handlePinInput"
-                required
-              />
+              <div class="relative group/pin">
+                <input 
+                  v-model="pin"
+                  :type="showPin ? 'text' : 'password'" 
+                  inputmode="numeric"
+                  pattern="[0-9]*"
+                  placeholder="••••"
+                  maxlength="4"
+                  class="w-full px-5 py-3.5 bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200 dark:border-white/5 rounded-2xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-center text-xl tracking-[1em] dark:placeholder:text-slate-600"
+                  :class="{ 'border-red-400 dark:border-red-600': errors.pin }"
+                  @input="handlePinInput"
+                  required
+                />
+                <button 
+                  type="button"
+                  @click="showPin = !showPin"
+                  class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-primary transition-colors focus:outline-none"
+                  aria-label="Toggle PIN visibility"
+                >
+                  <svg v-if="!showPin" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                  <svg v-else xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.52 13.52 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" y1="2" x2="22" y2="22"/></svg>
+                </button>
+              </div>
               <p v-if="errors.pin" class="ml-1 text-[11px] text-red-500 font-medium">{{ errors.pin }}</p>
             </div>
 

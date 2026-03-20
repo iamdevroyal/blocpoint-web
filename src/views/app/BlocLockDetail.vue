@@ -24,15 +24,10 @@ const successMessage = ref('')
 
 // ─── Computed ───────────────────────────────────────────────────────────────
 
-const vault = computed(() => {
-  // Find by plan_ref in the nested lockPlan or by vault ID
-  return savingsStore.vaults.find(v => 
-    v.id === planRef || 
-    (v.lockPlan && v.lockPlan.plan_ref === planRef)
-  )
-})
-
-const plan = computed(() => vault.value?.lockPlan)
+// Lock plans are stored flat in savingsStore.lockPlans as BlocLockPlanResource objects
+const plan = computed(() =>
+  savingsStore.lockPlans.find(p => p.plan_ref === planRef) ?? null
+)
 
 const progress = computed(() => {
   if (!plan.value) return 0
@@ -91,15 +86,15 @@ const handleBreak = async () => {
 }
 
 onMounted(async () => {
-  if (savingsStore.vaults.length === 0) {
-    await savingsStore.fetchVaults()
+  if (savingsStore.lockPlans.length === 0) {
+    await savingsStore.fetchLockPlans()
   }
 })
 </script>
 
 <template>
   <AppShell title="Plan Details" @back="router.push('/app/savings/lock')">
-    <div v-if="vault && plan" class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-24 px-4">
+    <div v-if="plan" class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-24 px-4">
       
       <!-- Summary Card -->
       <div class="p-8 rounded-[2.5rem] bg-indigo-600 text-white shadow-2xl relative overflow-hidden">
