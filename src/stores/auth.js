@@ -74,10 +74,15 @@ export const useAuthStore = defineStore('auth', {
          * @returns {Promise<string>}
          */
         async _hashPin(pin) {
-            const msgUint8 = new TextEncoder().encode(pin)
-            const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8)
-            const hashArray = Array.from(new Uint8Array(hashBuffer))
-            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+            try {
+                const msgUint8 = new TextEncoder().encode(pin)
+                const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8)
+                const hashArray = Array.from(new Uint8Array(hashBuffer))
+                return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+            } catch (err) {
+                // Fallback for environments lacking crypto.subtle (e.g. non-secure HTTP contexts on older PWAs)
+                return btoa(pin + '_fallback')
+            }
         },
 
         /**
