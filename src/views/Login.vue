@@ -71,13 +71,16 @@ const handlePinInput = (event) => {
 
 /**
  * Auto-submit when the 4th digit is entered.
- * This provides a premium, frictionless feel for both login and unlocking.
+ * This provides a premium, frictionless feel for unlocking.
+ * We restrict this to quick-login mode to prevent browsers from
+ * auto-filling the PIN and triggering an unwanted auto-login loop after logout.
  */
 watch(pin, (newPin) => {
-  if (newPin.length === 4 && !isLoading.value) {
+  if (isQuickLoginMode.value && newPin.length === 4 && !isLoading.value) {
     handleFormSubmit()
   }
 })
+
 
 // ─── Error helpers ────────────────────────────────────────────────────────────
 
