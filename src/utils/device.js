@@ -6,6 +6,8 @@
  * protection throttle keys, and the quick-login flow.
  */
 
+import { generateUUID } from './uuid'
+
 const DEVICE_ID_KEY = 'bp_device_id'
 
 /**
@@ -20,11 +22,12 @@ const DEVICE_ID_KEY = 'bp_device_id'
 export function getDeviceId() {
     let id = localStorage.getItem(DEVICE_ID_KEY)
     if (!id) {
-        id = crypto.randomUUID()
+        id = generateUUID()
         localStorage.setItem(DEVICE_ID_KEY, id)
     }
     return id
 }
+
 
 /**
  * Returns basic device/browser metadata for the backend device_info field.

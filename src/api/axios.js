@@ -1,7 +1,9 @@
 import axios from 'axios'
+import { generateUUID } from '../utils/uuid'
 
 /**
  * Base API client for blocpoint-web.
+
  *
  * Configured to talk to blocpoint-api at the URL set in VITE_API_BASE_URL.
  * Falls back to http://localhost/blocpoint/blocpoint-api/public/api/v1 for
@@ -39,12 +41,13 @@ apiClient.interceptors.request.use((config) => {
   }
 
   // Tracing header
-  config.headers['X-Correlation-Id'] = crypto.randomUUID()
+  config.headers['X-Correlation-Id'] = generateUUID()
 
   // Idempotency for mutating requests
   if (isMutation) {
-    config.headers['Idempotency-Key'] = crypto.randomUUID()
+    config.headers['Idempotency-Key'] = generateUUID()
   }
+
 
   return config
 })
