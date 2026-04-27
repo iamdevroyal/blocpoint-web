@@ -47,7 +47,10 @@ const totalSavings = computed(() => {
 
 /** Total interest earned across all products */
 const totalInterest = computed(() => {
-    return formatBalance(savingsStore.overview?.total_interest_earned || 0, selectedCurrency.value.symbol)
+    const overview = savingsStore.overview
+    if (!overview) return formatBalance(0, selectedCurrency.value.symbol)
+    const earned = (overview.total_interest_earned || 0) + (overview.total_accrued || 0)
+    return formatBalance(earned, selectedCurrency.value.symbol)
 })
 
 /**

@@ -11,7 +11,10 @@ const savingsStore = useSavingsStore()
 // ─── Computed Stats ──────────────────────────────────────────────────────────
 
 const totalBalance    = computed(() => savingsStore.overview?.total_balance || 0)
-const totalInterest   = computed(() => savingsStore.overview?.total_interest_earned || 0)
+const totalInterest   = computed(() => {
+  const overview = savingsStore.overview
+  return (overview?.total_interest_earned || 0) + (overview?.total_accrued || 0)
+})
 const activeVaultsCount = computed(() => savingsStore.overview?.vault_count || 0)
 
 // Per-product snapshot chips
