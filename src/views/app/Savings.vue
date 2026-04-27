@@ -106,7 +106,7 @@ onMounted(() => {
 
           <div class="grid grid-cols-4 gap-2 pt-4 border-t border-white/5">
             <div class="col-span-2 space-y-0.5">
-              <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Interest Earned</p>
+              <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Expected Interest</p>
               <p class="text-sm font-bold text-emerald-400 tracking-tight">+{{ formatBalance(totalInterest) }}</p>
             </div>
             <div class="space-y-0.5">
