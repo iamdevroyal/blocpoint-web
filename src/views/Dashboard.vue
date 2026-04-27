@@ -25,7 +25,6 @@ const savingsStore = useSavingsStore()
 const showBalance          = ref(true)
 const activeAlert          = ref(0)
 const showAlerts           = ref(true)
-const showCurrencyDropdown = ref(false)
 const showCopyToast        = ref(false)
 // ─── Computed from stores ─────────────────────────────────────────────────────
 
@@ -105,7 +104,6 @@ const services = [
 // ─── Handlers ─────────────────────────────────────────────────────────────────
 
 const selectCurrency = async (wallet) => {
-  showCurrencyDropdown.value = false
   await walletStore.selectWallet(wallet.currency)
 }
 
@@ -212,37 +210,22 @@ onMounted(() => {
                 </Transition>
               </div>
 
-              <!-- Currency Dropdown -->
-              <div class="relative">
-                <button
-                  @click="showCurrencyDropdown = !showCurrencyDropdown"
-                  class="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 backdrop-blur-md border border-white/10 rounded-full hover:bg-white/10 transition-colors"
-                >
-                  <span class="text-xs font-bold">{{ selectedCurrency.code }}</span>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="opacity-50"><path d="m6 9 6 6 6-6"/></svg>
-                </button>
-
-                <Transition name="fade">
-                  <div v-if="showCurrencyDropdown" class="absolute right-0 mt-2 w-36 bg-slate-900 border border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden">
-                    <div v-if="walletStore.isLoadingWallets" class="px-4 py-3 text-[10px] text-white/40 text-center">
-                      Loading…
-                    </div>
-                    <button
-                      v-else
-                      v-for="wallet in walletStore.enrichedWallets"
-                      :key="wallet.currency"
-                      @click="selectCurrency(wallet)"
-                      class="w-full flex items-center justify-between px-4 py-2.5 text-[10px] font-semibold hover:bg-white/5 transition-colors border-b border-white/5 last:border-0"
-                      :class="{ 'bg-white/10': walletStore.activeWallet?.currency === wallet.currency }"
-                    >
-                      <div class="flex items-center gap-2">
-                        <span>{{ wallet.flag }}</span>
-                        <span>{{ wallet.currency }}</span>
-                      </div>
-                      <span class="opacity-50">{{ wallet.symbol }}</span>
-                    </button>
-                  </div>
-                </Transition>
+              <!-- Horizontal Currency Toggler -->
+              <div class="flex items-center p-1 rounded-full bg-white/5 backdrop-blur-xl border border-white/10 shadow-inner">
+                <div v-if="walletStore.isLoadingWallets" class="px-4 py-1 text-[10px] font-black text-white/40 uppercase tracking-widest animate-pulse">
+                  Loading...
+                </div>
+                <template v-else>
+                  <button 
+                    v-for="wallet in walletStore.enrichedWallets" 
+                    :key="wallet.currency"
+                    @click="selectCurrency(wallet)"
+                    class="relative px-3.5 py-1.5 rounded-full text-[10px] font-black tracking-[0.1em] transition-all duration-300"
+                    :class="walletStore.activeWallet?.currency === wallet.currency ? 'bg-white text-slate-900 shadow-md scale-100' : 'text-white/40 hover:text-white/80 active:scale-95'"
+                  >
+                    {{ wallet.currency }}
+                  </button>
+                </template>
               </div>
             </div>
 
