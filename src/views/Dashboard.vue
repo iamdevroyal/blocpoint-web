@@ -187,20 +187,20 @@ onMounted(() => {
 
           <div class="relative z-10 space-y-6">
             <!-- Account number row -->
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between gap-3">
               <div
                 @click="copyAccount"
-                class="relative flex items-center gap-2 px-3 py-1.5 bg-white/5 backdrop-blur-md border border-white/10 rounded-full cursor-pointer active:scale-95 transition-all group/copy"
+                class="relative flex items-center shrink min-w-0 gap-1.5 px-3 py-1.5 bg-white/5 backdrop-blur-md border border-white/10 rounded-full cursor-pointer active:scale-95 transition-all group/copy"
               >
                 <!-- Skeleton while wallet loads and no account_number -->
                 <template v-if="dash.isLoadingWallet && !accountNumber">
-                  <span class="w-32 h-3 rounded-full bg-white/10 animate-pulse inline-block"></span>
+                  <span class="w-24 h-3 rounded-full bg-white/10 animate-pulse inline-block"></span>
                 </template>
                 <template v-else>
-                  <span class="text-xs font-bold tracking-tight opacity-90">
-                    {{ accountNumber ?? '—' }} | Blocpoint
+                  <span class="text-[11px] font-bold tracking-tight opacity-90 truncate">
+                    {{ accountNumber ?? '—' }} <span class="opacity-50">| Blocpoint</span>
                   </span>
-                  <svg v-if="accountNumber" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="opacity-50 group-hover/copy:opacity-100 transition-opacity"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                  <svg v-if="accountNumber" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="opacity-50 shrink-0 group-hover/copy:opacity-100 transition-opacity"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
                 </template>
 
                 <Transition name="fade">
@@ -211,8 +211,8 @@ onMounted(() => {
               </div>
 
               <!-- Horizontal Currency Toggler -->
-              <div class="flex items-center p-1 rounded-full bg-white/5 backdrop-blur-xl border border-white/10 shadow-inner">
-                <div v-if="walletStore.isLoadingWallets" class="px-4 py-1 text-[10px] font-black text-white/40 uppercase tracking-widest animate-pulse">
+              <div class="shrink-0 flex items-center p-0.5 rounded-full bg-white/5 backdrop-blur-xl border border-white/10 shadow-inner">
+                <div v-if="walletStore.isLoadingWallets" class="px-3 py-1 text-[9px] font-black text-white/40 uppercase tracking-widest animate-pulse">
                   Loading...
                 </div>
                 <template v-else>
@@ -220,8 +220,8 @@ onMounted(() => {
                     v-for="wallet in walletStore.enrichedWallets" 
                     :key="wallet.currency"
                     @click="selectCurrency(wallet)"
-                    class="relative px-3.5 py-1.5 rounded-full text-[10px] font-black tracking-[0.1em] transition-all duration-300"
-                    :class="walletStore.activeWallet?.currency === wallet.currency ? 'bg-white text-slate-900 shadow-md scale-100' : 'text-white/40 hover:text-white/80 active:scale-95'"
+                    class="relative px-3 py-1 rounded-full text-[9px] font-black tracking-[0.1em] transition-all duration-300"
+                    :class="walletStore.activeWallet?.currency === wallet.currency ? 'bg-white text-slate-900 shadow-md transform scale-100' : 'text-white/40 hover:text-white/80 active:scale-95'"
                   >
                     {{ wallet.currency }}
                   </button>
