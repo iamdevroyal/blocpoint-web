@@ -14,7 +14,7 @@ export default defineConfig({
         short_name: 'Blocpoint',
         description: 'Blocpoint user app – your financial liquidity hub.',
         theme_color: '#1e1b4b',
-        background_color: '#ffffff',
+        background_color: '#020617',
         display: 'standalone',
         orientation: 'portrait',
         start_url: '/auth/login',
