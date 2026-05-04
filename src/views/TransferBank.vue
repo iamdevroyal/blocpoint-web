@@ -33,7 +33,6 @@ const useRewards = ref(false)
 const paymentMethod = ref('wallet') // 'wallet' or 'blocflex'
 
 const transferFee = computed(() => {
-  const amt = parseFloat(amount.value) || 0
   return 25
 })
 
