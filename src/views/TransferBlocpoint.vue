@@ -384,7 +384,7 @@ const goBack = () => {
 
             <div class="w-full shrink-0">
               <button @click="processTransfer" class="w-full h-14 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[15px] font-black rounded-2xl shadow-xl active:scale-95 transition-all uppercase tracking-widest">
-                Authorize securely
+                Confirm Payment
               </button>
             </div>
           </div>
