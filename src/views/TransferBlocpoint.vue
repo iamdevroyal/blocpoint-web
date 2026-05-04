@@ -272,7 +272,7 @@ const goBack = () => {
       </Transition>
       <Transition name="slide-up">
         <div v-if="showCheckout" class="fixed inset-x-0 bottom-0 z-50 flex flex-col justify-end pointer-events-none">
-          <div class="pointer-events-auto bg-slate-50 dark:bg-slate-950 rounded-t-[2.5rem] p-6 shadow-2xl animate-in slide-in-from-bottom-full duration-300">
+          <div class="pointer-events-auto bg-slate-50 dark:bg-slate-950 rounded-t-[2.5rem] p-6 shadow-2xl animate-in slide-in-from-bottom-full duration-300 max-h-[85vh] overflow-y-auto flex flex-col">
             <!-- Header with Close -->
             <div class="flex items-center justify-between mb-4">
               <button @click="showCheckout = false" class="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-400">
