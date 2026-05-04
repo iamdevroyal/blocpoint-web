@@ -261,40 +261,40 @@ const goBack = () => {
       <Transition name="slide-up">
         <div v-if="showCheckout" class="fixed inset-x-0 bottom-0 z-[70] pointer-events-none flex flex-col justify-end h-full">
           <!-- Maximum height capped so it never covers the entire screen, but uses flex to manage inner overflow -->
-          <div class="pointer-events-auto bg-slate-50 dark:bg-slate-950 rounded-t-[2.5rem] shadow-2xl animate-in slide-in-from-bottom-full duration-300 w-full flex flex-col max-h-[85vh]">
+          <div class="pointer-events-auto bg-slate-50 dark:bg-slate-950 rounded-t-[2rem] shadow-2xl animate-in slide-in-from-bottom-full duration-300 w-full flex flex-col max-h-[85vh]">
             
             <!-- Scrollable Content Viewport -->
-            <div class="flex-1 overflow-y-auto px-6 pt-6 pb-2 relative">
+            <div class="flex-1 overflow-y-auto px-4 pt-4 pb-2 relative">
               <!-- Header with Close -->
-              <div class="flex items-center justify-between mb-4 sticky top-0 bg-slate-50/90 dark:bg-slate-950/90 backdrop-blur-sm z-10 py-1">
-                <button @click="showCheckout = false" class="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-400">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+              <div class="flex items-center justify-between mb-2 sticky top-0 bg-slate-50/90 dark:bg-slate-950/90 backdrop-blur-sm z-10 py-1">
+                <button @click="showCheckout = false" class="w-7 h-7 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                 </button>
               </div>
               
               <!-- Hero Amount -->
-              <div class="text-center mb-8">
-                <h2 class="text-4xl font-black text-slate-800 dark:text-white mb-2">₦{{ totalPayable.toLocaleString('en-US', {minimumFractionDigits: 2}) }}</h2>
+              <div class="text-center mb-4">
+                <h2 class="text-3xl font-black text-slate-800 dark:text-white mb-1">₦{{ totalPayable.toLocaleString('en-US', {minimumFractionDigits: 2}) }}</h2>
               </div>
 
               <!-- Transaction Details Table -->
-              <div class="space-y-4 mb-6 text-sm">
+              <div class="space-y-3 mb-4 text-xs">
                 <div class="flex justify-between items-center">
                   <span class="text-slate-500">Bank</span>
-                  <span class="font-bold flex items-center gap-2 text-slate-800 dark:text-white">
-                    <div class="w-4 h-4 bg-primary/20 text-primary rounded flex items-center justify-center text-[10px]">🏦</div> 
+                  <span class="font-bold flex items-center gap-1.5 text-slate-800 dark:text-white">
+                    <div class="w-3 h-3 bg-primary/20 text-primary rounded flex items-center justify-center text-[8px]">🏦</div> 
                     {{ selectedBank?.name }}
                   </span>
                 </div>
                 <div class="flex justify-between items-center">
-                  <span class="text-slate-500">Account Number</span>
+                  <span class="text-slate-500">Account No</span>
                   <span class="font-bold text-slate-800 dark:text-white">{{ accountNo }}</span>
                 </div>
                 <div class="flex justify-between items-start">
                   <span class="text-slate-500">Name</span>
-                  <span class="font-bold text-slate-800 dark:text-white text-right max-w-[60%] leading-tight">{{ verifiedName }}</span>
+                  <span class="font-bold text-slate-800 dark:text-white text-right max-w-[65%] leading-tight">{{ verifiedName }}</span>
                 </div>
-                <div class="flex justify-between items-center pt-2 border-t border-slate-200 dark:border-white/10">
+                <div class="flex justify-between items-center pt-1.5 border-t border-slate-200 dark:border-white/10">
                   <span class="text-slate-500">Amount</span>
                   <span class="font-bold text-slate-800 dark:text-white">₦{{ parseFloat(amount).toLocaleString('en-US', {minimumFractionDigits: 2}) }}</span>
                 </div>
@@ -304,51 +304,39 @@ const goBack = () => {
                 </div>
                 
                 <!-- Rewards Toggle Strip -->
-                <div class="flex justify-between items-center pt-2 border-t border-slate-200 dark:border-white/10">
+                <div class="flex justify-between items-center pt-1.5 border-t border-slate-200 dark:border-white/10">
                   <div class="flex items-center gap-2">
-                    <span class="text-slate-500 text-xs font-bold uppercase tracking-widest">Rewards Offset</span>
-                    <p class="text-[10px] text-amber-500 font-bold bg-amber-500/10 px-2 py-0.5 rounded-full">Available: ₦{{ mockRewardsBalance }}</p>
+                    <span class="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Rewards Offset</span>
+                    <p class="text-[9px] text-amber-500 font-bold bg-amber-500/10 px-1.5 py-0.5 rounded-full">Available: ₦{{ mockRewardsBalance }}</p>
                   </div>
-                  <div class="flex items-center gap-3">
-                    <span v-if="rewardsOffset > 0" class="text-xs font-black text-emerald-500">-₦{{ rewardsOffset.toLocaleString('en-US', {minimumFractionDigits: 2}) }}</span>
-                    <button @click="useRewards = !useRewards" :class="[useRewards ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-700']" class="relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none">
-                      <span :class="[useRewards ? 'translate-x-4 bg-white' : 'translate-x-0 bg-white']" class="pointer-events-none inline-block h-4 w-4 transform rounded-full shadow ring-0 transition duration-200 ease-in-out"></span>
+                  <div class="flex items-center gap-2">
+                    <span v-if="rewardsOffset > 0" class="text-[10px] font-black text-emerald-500">-₦{{ rewardsOffset.toLocaleString('en-US', {minimumFractionDigits: 2}) }}</span>
+                    <button @click="useRewards = !useRewards" :class="[useRewards ? 'bg-primary' : 'bg-slate-300 dark:bg-slate-700']" class="relative inline-flex h-4 w-8 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none">
+                      <span :class="[useRewards ? 'translate-x-4 bg-white' : 'translate-x-0 bg-white']" class="pointer-events-none inline-block h-3 w-3 transform rounded-full shadow ring-0 transition duration-200 ease-in-out"></span>
                     </button>
                   </div>
                 </div>
               </div>
 
               <!-- Payment Method Selector -->
-              <div class="mb-4">
-                <div class="flex justify-between items-center mb-3">
-                  <span class="text-xs font-bold text-slate-800 dark:text-white">Payment Method</span>
-                  <span class="text-xs font-bold text-slate-400">All ></span>
-                </div>
-                
-                <div class="space-y-2">
-                  <!-- Main Wallet -->
-                  <button @click="paymentMethod = 'wallet'" class="w-full flex items-center justify-between p-4 rounded-2xl border-2 transition-all" :class="paymentMethod === 'wallet' ? 'border-primary bg-primary/5' : 'border-slate-200 dark:border-white/10'">
-                    <div class="text-left font-bold" :class="paymentMethod === 'wallet' ? 'text-primary' : 'text-slate-600 dark:text-slate-400'">
-                      Available Balance <span class="font-black text-slate-800 dark:text-white ml-1">(₦{{ walletBalance.toLocaleString('en-US', {minimumFractionDigits: 2}) }})</span>
-                    </div>
-                    <svg v-if="paymentMethod === 'wallet'" class="text-primary w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-                  </button>
-                  
-                  <!-- BlocFlex (OWealth equivalent) -->
-                  <button @click="paymentMethod = 'blocflex'" class="w-full flex items-center justify-between p-4 rounded-2xl border-2 transition-all" :class="paymentMethod === 'blocflex' ? 'border-emerald-500 bg-emerald-500/5' : 'border-slate-200 dark:border-white/10'">
-                    <div class="text-left font-bold" :class="paymentMethod === 'blocflex' ? 'text-emerald-500' : 'text-slate-600 dark:text-slate-400'">
-                      BlocFlex Savings <span class="font-black text-slate-800 dark:text-white ml-1">(₦{{ flexBalance.toLocaleString('en-US', {minimumFractionDigits: 2}) }})</span>
-                    </div>
-                    <svg v-if="paymentMethod === 'blocflex'" class="text-emerald-500 w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
-                  </button>
+              <div class="mb-2 relative">
+                <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1.5 tracking-wider">Payment Method</label>
+                <div class="relative">
+                  <select v-model="paymentMethod" class="w-full appearance-none bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-800 dark:text-white outline-none focus:border-primary focus:ring-2 focus:ring-primary/20">
+                    <option value="wallet">💸 Main Wallet (₦{{ walletBalance.toLocaleString('en-US', {minimumFractionDigits: 2}) }})</option>
+                    <option value="blocflex">🏦 BlocFlex (₦{{ flexBalance.toLocaleString('en-US', {minimumFractionDigits: 2}) }})</option>
+                  </select>
+                  <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                  </div>
                 </div>
               </div>
             </div>
 
             <!-- Sticky Action Footer -->
-            <div class="p-6 pt-3 pb-8 bg-slate-50 dark:bg-slate-950 border-t border-slate-200 dark:border-white/5 shrink-0 z-20">
-              <button @click="showPin = true" class="w-full h-14 bg-primary text-white text-[15px] font-black rounded-2xl shadow-xl shadow-primary/30 active:scale-95 transition-all">
-                Pay
+            <div class="p-4 bg-slate-50 dark:bg-slate-950 border-t border-slate-200 dark:border-white/5 shrink-0 z-20 pb-safe">
+              <button @click="showPin = true" class="w-full h-12 bg-primary text-white text-[13px] font-black rounded-2xl shadow-xl shadow-primary/30 active:scale-95 transition-all">
+                Pay Securely
               </button>
             </div>
           </div>
