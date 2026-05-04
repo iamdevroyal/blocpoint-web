@@ -258,7 +258,7 @@ onMounted(() => {
               </div>
 
               <!-- Savings Summary (Injected) -->
-              <div v-if="savingsStore.overview?.total_balance > 0" class="flex items-center gap-3 pl-1 group cursor-pointer" @click="go('/app/savings')">
+              <div v-if="selectedCurrency.code === 'NGN' && savingsStore.overview?.total_balance > 0" class="flex items-center gap-3 pl-1 group cursor-pointer" @click="go('/app/savings')">
                 <div class="flex items-center gap-1.5">
                     <span class="text-[9px] font-black uppercase tracking-widest text-white/40 group-hover:text-primary transition-colors">Savings:</span>
                     <span class="text-xs font-black text-white" :class="{ 'blur-sm opacity-30': !showBalance }">{{ totalSavings }}</span>
