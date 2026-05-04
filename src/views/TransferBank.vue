@@ -259,8 +259,8 @@ const goBack = () => {
         <div v-if="showCheckout" class="fixed inset-0 z-40 bg-slate-950/40 backdrop-blur-sm" @click="showCheckout = false"></div>
       </Transition>
       <Transition name="slide-up">
-        <div v-if="showCheckout" class="fixed inset-x-0 bottom-0 z-50 flex flex-col justify-end pointer-events-none">
-          <div class="pointer-events-auto bg-slate-50 dark:bg-slate-950 rounded-t-[2.5rem] p-6 shadow-2xl animate-in slide-in-from-bottom-full duration-300 max-h-[90vh] overflow-y-auto flex flex-col">
+        <div v-if="showCheckout" class="fixed inset-x-0 bottom-0 z-50 pointer-events-none">
+          <div class="pointer-events-auto bg-slate-50 dark:bg-slate-950 rounded-t-[2.5rem] p-6 pb-8 shadow-2xl animate-in slide-in-from-bottom-full duration-300 max-h-[85vh] overflow-y-auto block">
             <!-- Header with Close -->
             <div class="flex items-center justify-between mb-4">
               <button @click="showCheckout = false" class="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-400">
@@ -353,8 +353,8 @@ const goBack = () => {
         <div v-if="showPin" class="fixed inset-0 z-[60] bg-slate-950/40 backdrop-blur-sm" @click="showPin = false"></div>
       </Transition>
       <Transition name="slide-up">
-        <div v-if="showPin" class="fixed inset-x-0 bottom-0 z-[70] flex flex-col justify-end pointer-events-none">
-          <div class="pointer-events-auto bg-white dark:bg-slate-900 rounded-t-[2.5rem] p-6 pt-10 shadow-2xl animate-in slide-in-from-bottom-full duration-300 space-y-8">
+        <div v-if="showPin" class="fixed inset-x-0 bottom-0 z-[70] pointer-events-none">
+          <div class="pointer-events-auto bg-white dark:bg-slate-900 rounded-t-[2.5rem] p-6 pt-10 pb-8 shadow-2xl animate-in slide-in-from-bottom-full duration-300 space-y-8 block">
             <div class="text-center space-y-2">
               <h3 class="text-lg font-extrabold text-slate-800 dark:text-white">Authorize Transfer</h3>
               <p class="text-xs font-medium text-slate-500 dark:text-slate-400">Total: <span class="text-slate-800 dark:text-white font-black">₦{{ totalPayable.toLocaleString('en-US', {minimumFractionDigits: 2}) }}</span></p>
